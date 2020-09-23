@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Trazabilidad 2.0</string>
+    <string name="app_name">trazar</string>
     <string name="comercio_nombre">Nombre Establecimiento/Sucursal</string>
     <string name="comercio_cuit">Cuit Establecimiento o Dni Responsable</string>
     <string name="comercio_domicilio">Domicilio del establecimiento</string>
@@ -9,7 +9,7 @@
     <string name="Boton_guardar">Guardar configuración</string>
     <string name="cuit_establecimiento">CUIT Establecimiento o DNI del Titular</string>
     <string name="establecimiento_seleccion">Seleccione establecimiento</string>
-    <string name="establecimiento_boton_crear" >Crear Sucursal o Establecimiento</string>
+    <string name="establecimiento_boton_crear">Crear Sucursal o Establecimiento</string>
     <string name="establecimiento_Seleccionar">Seleccionar este establecimiento</string>
     <string name="este_telefono">Telefono de este dispositivo</string>
     <string name="btn_siguiente">Siguiente</string>

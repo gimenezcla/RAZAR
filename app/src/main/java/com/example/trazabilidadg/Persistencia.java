@@ -583,7 +583,8 @@ public class Persistencia {
   }
 
   public void Eliminar30Dias(){
-    db.execSQL( "DELETE FROM QRs WHERE datetime(FECHA, 'unixepoch') <= date('now','-1 day')"     );
+    db.execSQL( "DELETE FROM QRs WHERE FECHA <= date('now','-1 day')"     );
+ //   db.execSQL("update qrs set fecha = datetime(fecha,'-3 day')");
   }
 }
 
