@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:fillViewport="true"> <!--IMPORTANT otherwise backgrnd img. will not fill the whole screen -->
+
+    <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".EstablecimientoActivity">
+
+    <EditText
+        android:id="@+id/edPermanencia"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:hint="@string/comercio_permanencia"
+        android:inputType="number"
+        app:layout_constraintEnd_toEndOf="@+id/edNombreResponsable"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="@+id/rbEntradaSalida"
+        app:layout_constraintTop_toBottomOf="@+id/rbEntradaSalida" />
+
+    <EditText
+        android:id="@+id/edTelefono"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:hint="@string/comercio_telefono"
+        android:inputType="phone"
+        app:layout_constraintEnd_toEndOf="@+id/edDomicilio"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="@+id/edDomicilio"
+        app:layout_constraintTop_toBottomOf="@+id/spLocalidad" />
+
+    <EditText
+        android:id="@+id/edCuitDniResponsable"
+        android:layout_width="341dp"
+        android:layout_height="43dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginLeft="24dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="24dp"
+        android:layout_marginRight="24dp"
+        android:enabled="false"
+        android:hint="@string/comercio_cuit"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <EditText
+        android:id="@+id/edNombreEstablecimiento"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:hint="@string/comercio_nombre"
+        app:layout_constraintEnd_toEndOf="@+id/edCuitDniResponsable"
+        app:layout_constraintStart_toStartOf="@+id/edCuitDniResponsable"
+        app:layout_constraintTop_toBottomOf="@+id/edCuitDniResponsable" />
+
+    <EditText
+        android:id="@+id/edDomicilio"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:hint="@string/comercio_domicilio"
+        app:layout_constraintEnd_toEndOf="@+id/edNombreEstablecimiento"
+        app:layout_constraintStart_toStartOf="@+id/edNombreEstablecimiento"
+        app:layout_constraintTop_toBottomOf="@+id/edNombreEstablecimiento" />
+
+    <Spinner
+        android:id="@+id/spLocalidad"
+        android:layout_width="0dp"
+        android:layout_height="36dp"
+        android:layout_marginTop="8dp"
+        android:hint="@string/comercio_localidad"
+        android:spinnerMode="dialog"
+        app:layout_constraintEnd_toEndOf="@+id/edDomicilio"
+        app:layout_constraintStart_toStartOf="@+id/edDomicilio"
+        app:layout_constraintTop_toBottomOf="@+id/edDomicilio" />
+
+    <EditText
+        android:id="@+id/edNombreResponsable"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:hint="@string/comercio_responsable"
+        app:layout_constraintEnd_toEndOf="@+id/edTelefono"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="@+id/edTelefono"
+        app:layout_constraintTop_toBottomOf="@+id/edTelefono" />
+
+    <Button
+        android:id="@+id/btnGuardar"
+        android:layout_width="202dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:text="@string/Boton_guardar"
+        app:layout_constraintEnd_toEndOf="@+id/edPermanencia"
+        app:layout_constraintHorizontal_bias="0.492"
+        app:layout_constraintStart_toStartOf="@+id/edPermanencia"
+        app:layout_constraintTop_toBottomOf="@+id/edPermanencia" />
+
+    <RadioGroup
+        android:id="@+id/rbEntradaSalida"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:orientation="vertical"
+        app:layout_constraintEnd_toEndOf="@+id/edNombreResponsable"
+        app:layout_constraintStart_toStartOf="@+id/edNombreResponsable"
+        app:layout_constraintTop_toBottomOf="@+id/edNombreResponsable">
+
+        <RadioButton
+            android:id="@+id/Solo_Entradas"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Solo registra Entradas" />
+
+        <RadioButton
+            android:id="@+id/EntradasYSalidas"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Registra Entradas y Salidas" />
+    </RadioGroup>
+
+    <ProgressBar
+        android:id="@+id/progressBarComercio"
+        style="?android:attr/progressBarStyle"
+        android:layout_width="236dp"
+        android:layout_height="226dp"
+        android:layout_marginTop="20dp"
+        android:visibility="invisible"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
+</ScrollView>

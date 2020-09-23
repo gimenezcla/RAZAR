@@ -1,0 +1,26 @@
+<resources>
+    <string name="app_name">Trazabilidad 2.0</string>
+    <string name="comercio_nombre">Nombre Establecimiento/Sucursal</string>
+    <string name="comercio_cuit">Cuit Establecimiento o Dni Responsable</string>
+    <string name="comercio_domicilio">Domicilio del establecimiento</string>
+    <string name="comercio_telefono">Telefono del responsable</string>
+    <string name="comercio_usuario">Cuenta de reconocimiento del dispositivo</string>
+    <string name="comercio_localidad">Localidad del establecimiento</string>
+    <string name="Boton_guardar">Guardar configuración</string>
+    <string name="cuit_establecimiento">CUIT Establecimiento o DNI del Titular</string>
+    <string name="establecimiento_seleccion">Seleccione establecimiento</string>
+    <string name="establecimiento_boton_crear" >Crear Sucursal o Establecimiento</string>
+    <string name="establecimiento_Seleccionar">Seleccionar este establecimiento</string>
+    <string name="este_telefono">Telefono de este dispositivo</string>
+    <string name="btn_siguiente">Siguiente</string>
+    <string name="comercio_responsable">Nombre del Responsable</string>
+    <string name="comercio_permanencia">Minutos de Atención</string>
+    <string name="boton_manual">Carga manual</string>
+    <string name="Registro_visitas">Registro de visitas</string>
+    <string name="main_dni">Nro de DNI</string>
+    <string name="main_apellido">Apellido</string>
+    <string name="main_nombres">Nombres</string>
+    <string name="main_telefono">Teléfono</string>
+    <string name="main_descripcion">Descripción</string>
+    <string name="boton_solo_guardar">Guardar</string>
+</resources>
