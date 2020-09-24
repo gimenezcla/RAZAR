@@ -23,4 +23,5 @@
     <string name="main_telefono">Teléfono</string>
     <string name="main_descripcion">Descripción</string>
     <string name="boton_solo_guardar">Guardar</string>
+    <string name="TituloVisitas">Detalle de Visitas</string>
 </resources>
