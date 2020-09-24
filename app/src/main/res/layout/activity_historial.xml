@@ -15,28 +15,16 @@
         android:layout_height="match_parent"
         tools:context=".ActivityHistorial">
 
-    <Button
-        android:id="@+id/btnVaciar"
-        style="@style/Widget.AppCompat.Button.Colored"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/boton_solo_guardar"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:visibility="gone" />
-
     <ListView
         android:id="@+id/lvValores"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
         android:layout_marginBottom="8dp"
         android:divider="#03DAC5"
         android:dividerHeight="3dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/btnVaciar">
+        app:layout_constraintStart_toStartOf="parent">
 
     </ListView>
     </androidx.constraintlayout.widget.ConstraintLayout>

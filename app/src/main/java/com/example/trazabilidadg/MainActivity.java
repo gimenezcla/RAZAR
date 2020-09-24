@@ -28,6 +28,7 @@ import android.os.Bundle;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -126,7 +127,10 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                     txtDNI.setEnabled(true);
                     txtApellido.setEnabled(true);
                     txtNombres.setEnabled(true);
-                    txtTelefono.requestFocus();
+                    txtDNI.setFocusableInTouchMode(true);
+                    txtDNI.requestFocus();
+                    InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                    imm.showSoftInput(txtDNI, InputMethodManager.SHOW_IMPLICIT);
                     showSettingAlert();
                 }
             });
@@ -141,10 +145,12 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             btnVer.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    if (checkPermission(WRITE_EXTERNAL_STORAGE, 101)) {
+                    /*if (checkPermission(WRITE_EXTERNAL_STORAGE, 101)) {
                         Intent intent = new Intent(MainActivity.this, ActivityHistorial.class);
                         startActivity(intent);
-                    }
+                    }*/
+                    Intent intent = new Intent(MainActivity.this, ActivityHistorial.class);
+                    startActivity(intent);
                 }
             });
 
@@ -294,6 +300,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             return;
         }
 
+        idUsuEstab = Persistencia.getIdUsuEstabDBLocal();
         if(idUsuEstab> 0)
         {
             persistencia.GuardarVisita( txtDNI.getText().toString().replaceAll("[^0-9]+","").trim(),
@@ -315,7 +322,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     }
 
     public void escanear() {
-        IntentIntegrator intent = new IntentIntegrator( this);
+        /*IntentIntegrator intent = new IntentIntegrator( this);
          intent.setDesiredBarcodeFormats(IntentIntegrator.ALL_CODE_TYPES);
         //intent.setDesiredBarcodeFormats(IntentIntegrator.QR_CODE_TYPES);
         intent.setOrientationLocked(true);
@@ -323,6 +330,18 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         intent.setCameraId(0);
         intent.setBeepEnabled(false);
         intent.setBarcodeImageEnabled(false);
+
+        intent.initiateScan();*/
+
+
+        IntentIntegrator intent = new IntentIntegrator( this);
+        intent.setDesiredBarcodeFormats(IntentIntegrator.ALL_CODE_TYPES);
+        intent.setOrientationLocked(false);
+        intent.setPrompt("ESCANEAR CODIGO");
+        intent.setCameraId(0);
+        intent.setBeepEnabled(false);
+        intent.setBarcodeImageEnabled(false);
+        intent.setCaptureActivity(CaptureActivityPortrait.class);
 
         intent.initiateScan();
     }
@@ -453,6 +472,12 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                     Genero = dividirBarra(barraLeida, SubBarra.GENERO);
                     txtTelefono.setFocusableInTouchMode(true);
                     txtTelefono.requestFocus();
+
+                    InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                    //imm.showSoftInput(txtTelefono, InputMethodManager.SHOW_FORCED);
+                    imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
+
+
                     llenarTelefonoHistorico(txtDNI.getText().toString().trim());
                 }
                 else Toast.makeText(MainActivity.this, "Código de Barra no válido:("+result.getFormatName()+")", Toast.LENGTH_LONG).show();

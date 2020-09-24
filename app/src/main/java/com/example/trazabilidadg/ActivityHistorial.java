@@ -99,7 +99,6 @@ public class ActivityHistorial extends AppCompatActivity {
         formatterServer.setTimeZone(TimeZone.getTimeZone("UTC−03:00"));
 
         lvValores = (ListView)findViewById(R.id.lvValores);
-        btnVaciar = (Button) findViewById(R.id.btnVaciar);
 
         List<String> valoresList = new ArrayList<String>();
         adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, valoresList);
@@ -138,7 +137,7 @@ public class ActivityHistorial extends AppCompatActivity {
         }
         //generateNoteOnSD(this, "historial.csv", CSV);
 
-        btnVaciar.setOnClickListener(new View.OnClickListener() {
+        /*btnVaciar.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 //DB.execSQL("DELETE FROM QRs");
@@ -153,7 +152,7 @@ public class ActivityHistorial extends AppCompatActivity {
                 }.execute();
 
             }
-        });
+        });*/
     }
 
     public boolean onOptionsItemSelected(MenuItem item){
