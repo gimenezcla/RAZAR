@@ -27,6 +27,8 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
@@ -192,6 +194,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
             persistencia.Eliminar30Dias();
         }
+
 
     private boolean getGPSStatus()
     {
