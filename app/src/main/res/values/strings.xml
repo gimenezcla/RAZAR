@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">trazar</string>
+    <string name="app_name">Trazar</string>
     <string name="comercio_nombre">Nombre Establecimiento/Sucursal</string>
     <string name="comercio_cuit">Cuit Establecimiento o Dni Responsable</string>
     <string name="comercio_domicilio">Domicilio del establecimiento</string>

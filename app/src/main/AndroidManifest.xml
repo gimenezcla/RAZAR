@@ -16,7 +16,7 @@
         android:icon="@mipmap/icono_trazar"
         android:label="@string/app_name"
         android:requestLegacyExternalStorage="true"
-        android:roundIcon="@mipmap/ic_launcher_round"
+        android:roundIcon="@mipmap/icono_trazar"
         android:screenOrientation="portrait"
         android:sharedUserId="android.uid.system"
         android:supportsRtl="true"
