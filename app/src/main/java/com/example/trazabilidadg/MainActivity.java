@@ -310,7 +310,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             Toast.makeText(MainActivity.this, "Campos guardados con éxito", Toast.LENGTH_SHORT).show();
             VaciarCampos();
         }else
-            Toast.makeText(MainActivity.this, "Ocurrio un error al guardar los datos, por favor cierre y vuelva a internar.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(MainActivity.this, "Ocurrio un error al guardar los datos, por favor cierre y vuelva a intentar.", Toast.LENGTH_SHORT).show();
 
     }
 
