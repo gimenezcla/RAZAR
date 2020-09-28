@@ -21,6 +21,7 @@
         android:sharedUserId="android.uid.system"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+        <activity android:name=".EstablecimientoEdit"></activity>
         <activity
             android:name=".CaptureActivityPortrait"
             android:stateNotNeeded="true"
@@ -54,10 +55,14 @@
             android:name=".MainActivity"
             android:configChanges="orientation|screenSize" />
 
-        <receiver android:name=".NetworkReceiver">
+        <receiver android:name=".NetworkReceiver"
+            android:enabled="true"
+            android:exported="true"
+            android:directBootAware="true">
             <intent-filter>
                 <action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
-                <!-- <action android:name="android.net.wifi.WIFI_STATE_CHANGED" /> -->
+                <action android:name="com.htc.net.conn.CONNECTIVITY_CHANGE" />
+                <action android:name="android.net.wifi.WIFI_STATE_CHANGED" />
             </intent-filter>
         </receiver>
         <receiver android:name=".AlarmEnviadorReceiver" />

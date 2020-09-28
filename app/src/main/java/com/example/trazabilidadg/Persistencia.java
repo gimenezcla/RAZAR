@@ -4,6 +4,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteStatement;
+import android.util.Log;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -34,6 +35,8 @@ import javax.net.ssl.HttpsURLConnection;
 
 public class Persistencia {
   public static SQLiteDatabase db;
+  public final String versionActual = "1";
+
   private String UrlServidor = "https://www.programainformatico.sanluis.gob.ar/ords/salud/"; //trazabilidad/seguimiento/
 
   public static Integer getIdUsuEstabDBLocal() {
@@ -215,7 +218,10 @@ public class Persistencia {
           response.append(responseLine.trim());}
 
         if(!response.toString().isEmpty())
+        {
+          Log.e("RESp POST",response.toString());
           return jsonToMap(new JSONObject(response.toString()));
+        }
         else
           return null;
 
@@ -229,6 +235,7 @@ public class Persistencia {
         while ((responseLine = br_err.readLine()) != null) {
           response.append(responseLine.trim());}
         String Error = response.toString();
+        Log.e("Error POST",Error);
         return null;
       }
     } catch (MalformedURLException e) {
@@ -332,6 +339,11 @@ public class Persistencia {
             "        REGISTRA_SALIDA VARCHAR," +
             "        TIEMPO_PERMANENCIA VARCHAR," +
             "        enviado BOOLEAN" +
+            ")");
+    db.execSQL("CREATE TABLE IF NOT EXISTS VERSION(" +
+            "        N_VERSION VARCHAR," +
+            "        MSG VARCHAR," +
+            "        ACTUALIZA VARCHAR" +
             ")");
     db.execSQL("CREATE TABLE IF NOT EXISTS LOCALIDADES(" +
             //     "        ID_LOCALIDAD INTEGER PRIMARY KEY AUTOINCREMENT," +
@@ -585,6 +597,148 @@ public class Persistencia {
   public void Eliminar30Dias(){
     db.execSQL( "DELETE FROM QRs WHERE FECHA <= date('now','-30 day')");
  //   db.execSQL("update qrs set fecha = datetime(fecha,'-3 day')");
+  }
+
+  public Establecimiento getEstablecimientoLocal() {
+    Cursor cursor = db.rawQuery("Select * FROM ESTAB_USUARIO",null);
+    if (cursor.moveToNext())
+    {
+      DateFormat formatterServer = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+      formatterServer.setTimeZone(TimeZone.getTimeZone("UTC−03:00"));
+      //DateFormat formatterClient = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());;
+
+      Establecimiento establecimiento = new Establecimiento();
+      establecimiento.IdUsuEstab = cursor.getInt(0);
+      establecimiento.NombreEstablecimiento = cursor.getString(1);
+      establecimiento.CuitDniResponsable = cursor.getString(2);
+      establecimiento.Localidad = cursor.getString(3);
+      establecimiento.NombreResponsable = cursor.getString(6);
+      try {
+        establecimiento.Fecha_Creacion = formatterServer.parse(cursor.getString(8));
+      } catch (ParseException e) {
+        e.printStackTrace();
+      }
+      establecimiento.TelefonoEstab = cursor.getString(9);
+      establecimiento.Telefono = cursor.getString(10);
+      establecimiento.Domicilio = cursor.getString(11);
+      establecimiento.RegistraSalidas = cursor.getString(12);
+      establecimiento.Permanencia = cursor.getInt(13);
+
+      return establecimiento;
+
+    }
+    return null;
+  }
+
+  public Map<String,Object> verifyVersion() {
+
+    Integer idUsuEstab = getIdUsuEstabDBLocal();
+
+    if(idUsuEstab != null)
+    {
+      //Seteo los parametros
+      HashMap<String, String> param = new HashMap();
+      param.put("ID_USU_ESTAB", idUsuEstab.toString());
+      param.put("N_VERSION", versionActual);
+
+      Map<String,Object> retorno =
+              Post(UrlServidor+"trazabilidad/getVersion/",param); //realiza el post
+
+      if(retorno != null && retorno.get("MSG") != null)
+      {
+        if(retorno.get("MSG").toString().equals("S/N"))
+          db.execSQL( "DELETE FROM VERSION");
+        else
+        {
+          db.execSQL( "DELETE FROM VERSION");
+          SQLiteStatement consulta = db.compileStatement(
+                  "INSERT INTO VERSION( N_VERSION, MSG, ACTUALIZA)" +
+                          " VALUES(?, ?, ?)"
+          );
+
+          consulta.bindString(1, versionActual);
+          consulta.bindString(2, retorno.get("MSG").toString());
+          consulta.bindString(3, retorno.get("ACTUALIZA").toString());
+
+          consulta.executeInsert();
+        }
+      }
+
+      Cursor cursor = db.rawQuery("Select * FROM VERSION",null);
+      if (cursor.moveToNext())
+      {
+        String versionDb = cursor.getString(0);
+
+        if(versionDb.equals(versionActual))
+        {
+          Map<String, Object> salida = new HashMap();
+          salida.put("MSG",cursor.getString(1));
+          salida.put("ACTUALIZA",cursor.getString(2));
+          Log.e("MSG",salida.get("MSG").toString());
+          return salida;
+        }else {
+          db.execSQL( "DELETE FROM VERSION");
+        }
+      }
+
+//      return retorno;
+    }
+
+
+
+
+
+    return null;
+  }
+
+  public void GuardarUsuarioEstabEdit(String cuitDniResponsable, String nombreEstablecimiento, String nombreResponsable,
+                                     String domicilio, String telefono,String telefonoEstab, String localidad, boolean registraSalidas,
+                                     String permanencia)
+  {
+    //Seteo los parametros
+    HashMap<String, String> param = new HashMap();
+    param.put("CUIT_DNI", cuitDniResponsable);
+    param.put("ID_USU_ESTAB", getIdUsuEstabDBLocal().toString());
+    param.put("NOMBRE", nombreEstablecimiento);
+    param.put("RESPONSABLE", nombreResponsable);
+    param.put("TELEFONO", telefono);
+    param.put("TELEFONO_ESTAB", telefonoEstab);
+    param.put("DOMICILIO", domicilio);
+    param.put("LOCALIDAD", localidad);
+    param.put("SALIDAS", registraSalidas ? "SI" : "NO");
+    param.put("PERMANENCIA", permanencia);
+
+
+    Map<String,Object> retorno =  Post(UrlServidor+"trazabilidad/updateUsuEstab/",param);
+    String retornoString = retorno.get("RETORNO").toString();
+
+    if(retornoString.equals("OK"))
+    {
+      SQLiteStatement consulta = db.compileStatement(
+              " UPDATE ESTAB_USUARIO " +
+                      "SET NOMBRE = ?," +
+                      "    LOCALIDAD = ?, " +
+                      "    RESPONSABLE = ? ," +
+                      "    TELEFONO = ? , " +
+                      "    TELEFONO_USU = ? , " +
+                      "    DOMICILIO = ? ," +
+                      "    REGISTRA_SALIDA = ?, " +
+                      "    CUIT_DNI = ?, " +
+                      "    TIEMPO_PERMANENCIA = ?"
+      );
+      consulta.bindString(1, nombreEstablecimiento);
+      consulta.bindString(2, localidad);
+      consulta.bindString(3, nombreResponsable);
+      consulta.bindString(4, telefonoEstab);
+      consulta.bindString(5, telefono);
+      consulta.bindString(6, domicilio);
+      consulta.bindString(7, registraSalidas?"1":"0");
+      consulta.bindString(8, cuitDniResponsable);
+      consulta.bindString(9, permanencia);
+
+      consulta.executeUpdateDelete();
+    }
+
   }
 }
 

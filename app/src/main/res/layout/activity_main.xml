@@ -56,7 +56,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="56dp"
-        android:text="Escanear Código"
+        android:text="@string/main_escanear"
         app:layout_constraintStart_toStartOf="@+id/txtDNI"
         app:layout_constraintTop_toTopOf="parent" />
     <EditText

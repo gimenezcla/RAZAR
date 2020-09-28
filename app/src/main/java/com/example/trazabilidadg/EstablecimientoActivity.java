@@ -38,7 +38,9 @@ public class EstablecimientoActivity extends AppCompatActivity {
         //Carga las localidades.
         final Spinner spLocalidad = findViewById(R.id.spLocalidad);
         ArrayList<String> listaLocalidades= MainActivity.persistencia.getLocalidades();
-        spLocalidad.setAdapter(new ArrayAdapter<String>(this,android.R.layout.simple_spinner_item, listaLocalidades));
+        listaLocalidades.add(0,"Seleccione una Localidad...");
+        spLocalidad.setAdapter(new ArrayAdapter<String>(this,
+                android.R.layout.simple_spinner_dropdown_item, listaLocalidades));
 
 
         final EditText edCuitDniResponsable = findViewById(R.id.edCuitDniResponsable);
@@ -58,41 +60,54 @@ public class EstablecimientoActivity extends AppCompatActivity {
             public void onClick(View v) {
                 //Abre Seleccion establecimiento
                 if (edCuitDniResponsable.getText().toString().isEmpty()) {
-                    Toast.makeText(EstablecimientoActivity.this,
+                    CustomToast.showError(EstablecimientoActivity.this,
                             "Debe ingresar el Cuit del Establecimiento o Dni del Titular",
-                            Toast.LENGTH_SHORT).show();
+                            Toast.LENGTH_SHORT);
                     return;
                 }
                 if (edNombreEstablecimiento.getText().toString().isEmpty()) {
-                    Toast.makeText(EstablecimientoActivity.this,
+                    CustomToast.showError(EstablecimientoActivity.this,
                             "Debe ingresar el Nombre del Establecimiento",
-                            Toast.LENGTH_SHORT).show();
-                    return;
-                }
-                if (edNombreResponsable.getText().toString().isEmpty()) {
-                    Toast.makeText(EstablecimientoActivity.this,
-                            "Debe ingresar el Nombre del Responsable del Establecimiento",
-                            Toast.LENGTH_SHORT).show();
-                    return;
-                }
-                if (edPermanencia.getText().toString().isEmpty()) {
-                    Toast.makeText(EstablecimientoActivity.this,
-                            "Debe ingresar los minutos promedios de atención en local",
-                            Toast.LENGTH_SHORT).show();
+                            Toast.LENGTH_SHORT);
                     return;
                 }
                 if (edDomicilio.getText().toString().isEmpty()) {
-                    Toast.makeText(EstablecimientoActivity.this,
+                    CustomToast.showError(EstablecimientoActivity.this,
                             "Debe ingresar el Domicilio del Establecimiento",
-                            Toast.LENGTH_SHORT).show();
+                            Toast.LENGTH_SHORT);
+                    return;
+                }
+                if (spLocalidad.getSelectedItemPosition()==0) {
+                    CustomToast.showError(EstablecimientoActivity.this,
+                            "Debe seleccionar una Localidad",
+                            Toast.LENGTH_SHORT);
+                    return;
+                }
+                if (edNombreResponsable.getText().toString().isEmpty()) {
+                    CustomToast.showError(EstablecimientoActivity.this,
+                            "Debe ingresar el Nombre del Responsable del Establecimiento",
+                            Toast.LENGTH_SHORT);
                     return;
                 }
                 if (edTelefono.getText().toString().isEmpty()) {
-                    Toast.makeText(EstablecimientoActivity.this,
-                            "Debe ingresar el Teléfono del Establecimiento",
-                            Toast.LENGTH_SHORT).show();
+                    CustomToast.showError(EstablecimientoActivity.this,
+                            "Debe ingresar el Teléfono del Responsable",
+                            Toast.LENGTH_SHORT);
                     return;
                 }
+                if (edTelefono.getText().toString().length()>10) {
+                    CustomToast.showError(EstablecimientoActivity.this,
+                            "El Teléfono del Responsable no puede superar los 10 digitos",
+                            Toast.LENGTH_SHORT);
+                    return;
+                }
+                if (edPermanencia.getText().toString().isEmpty()) {
+                    CustomToast.showError(EstablecimientoActivity.this,
+                            "Debe ingresar los minutos promedios de atención en local",
+                            Toast.LENGTH_SHORT);
+                    return;
+                }
+
                 CuitDniResponsable = edCuitDniResponsable.getText().toString();
                 NombreEstablecimiento = edNombreEstablecimiento.getText().toString();
                 NombreResponsable = edNombreResponsable.getText().toString();
@@ -106,42 +121,45 @@ public class EstablecimientoActivity extends AppCompatActivity {
 
                 progressBar.setVisibility(View.VISIBLE);
                 final Handler h = new Handler();
-                //Cierra y vuelve a Main.
-                new AsyncTask<Void, Void, Void>() {
-                    @Override
-                    protected Void doInBackground(final Void ... params ) {
-                        // something you know that will take a few seconds
-                        int IdUsuEstab = MainActivity.persistencia.GuardarUsuarioEstablecimiento(
-                                CuitDniResponsable,
-                                NombreEstablecimiento,
-                                NombreResponsable,
-                                Domicilio,
-                                Telefono,
-                                Localidad,
-                                RegistraSalidas,
-                                MainActivity.USUARIO,
-                                Permanencia,
-                                DocumentoActivity.Telefono,
-                                MainActivity.latitude,
-                                MainActivity.longitude);
+
+                SingleShotLocationProvider.requestSingleUpdate(EstablecimientoActivity.this,
+                        new SingleShotLocationProvider.LocationCallback() {
+                            @Override public void onNewLocationAvailable(final SingleShotLocationProvider.GPSCoordinates location) {
+
+                                //Cierra y vuelve a Main.
+                                new AsyncTask<String, Void, String>() {
+                                    @Override
+                                    protected String doInBackground(final String ... params ) {
+                                        // something you know that will take a few seconds
+                                        int IdUsuEstab = MainActivity.persistencia.GuardarUsuarioEstablecimiento(
+                                                CuitDniResponsable,
+                                                NombreEstablecimiento,
+                                                NombreResponsable,
+                                                Domicilio,
+                                                Telefono,
+                                                Localidad,
+                                                false,//RegistraSalidas,
+                                                MainActivity.USUARIO,
+                                                Permanencia,
+                                                DocumentoActivity.Telefono,
+                                                location.latitude,
+                                                location.longitude);
 
 
-                        h.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                progressBar.setVisibility(View.INVISIBLE);
-                                setResult(SeleccionEstablecimientoActivity.RESULT_OK,new Intent());
-                                finish();
+                                        return null;
+                                    }
+
+                                    @Override
+                                    protected void onPostExecute(String result) {
+                                        progressBar.setVisibility(View.INVISIBLE);
+                                        setResult(SeleccionEstablecimientoActivity.RESULT_OK,new Intent());
+                                        finish();
+                                    }
+
+                                }.execute();
                             }
-                        });
+                });
 
-                        return null;
-                    }
-
-                }.execute();
-
-                setResult(EstablecimientoActivity.RESULT_OK,new Intent());
-                finish();
             }
         });
 

@@ -104,7 +104,7 @@ public class ActivityHistorial extends AppCompatActivity {
         adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, valoresList);
 
         lvValores.setAdapter(adapter);
-        Cursor fila = DB.rawQuery("SELECT FECHA,DNI,APELLIDO,NOMBRES,TIPO_MOVIMIENTO,ENVIADO  FROM QRs ORDER BY id_registro desc", null); //  where enviado = 0  ORDER BY timestamp DESC
+        Cursor fila = DB.rawQuery("SELECT FECHA, DNI, APELLIDO, NOMBRES, TIPO_MOVIMIENTO, ENVIADO  FROM QRs ORDER BY id_registro desc", null); //  where enviado = 0  ORDER BY timestamp DESC
         String valores, CSV = "";
 
         while(fila.moveToNext())
@@ -113,23 +113,11 @@ public class ActivityHistorial extends AppCompatActivity {
                 date = (Date) formatterServer.parse(fila.getString(0));
                 valores = "";
                 valores += "Fecha: " + formatterClient.format(date) +" E: " + fila.getString(5) + "\n";
-                valores += "Dni: " + fila.getString(1) + "\n";
+                //valores += "Dni: " + fila.getString(1) + "\n";
                 valores += "Nombre: " + fila.getString(2) +" "+ fila.getString(3) + "\n";
-                valores += "Tipo: " + fila.getString(4) ;//+ "\n";
+                //valores += "Tipo: " + fila.getString(4) ;//+ "\n";
                 //valores += "------------------------------------------------E: " + fila.getString(5) ;
                 adapter.add(valores);
-/*
-                CSV += formatterClient.format(date) + ";";
-              //  CSV += fila.getString(0) + ";";
-                CSV += fila.getString(1) + ";";
-                CSV += fila.getString(2) + ";";
-//                CSV += "https://www.google.com/maps/place/" + fila.getString(3).replace(" ", "%20") + ",";
-                CSV += fila.getString(3) + ";";
-                CSV += fila.getString(4) + ";";
-                CSV += fila.getString(5) + ";";
-                CSV += fila.getString(6) + ";";
-                CSV += fila.getString(7) + "#";//"\n";
-*/
 
             } catch (ParseException e) {
                 e.printStackTrace();

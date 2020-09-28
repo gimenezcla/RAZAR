@@ -25,4 +25,8 @@
     <string name="boton_solo_guardar">Guardar</string>
     <string name="TituloVisitas">Detalle de Visitas</string>
     <string name="btn_visitas">Detalle de Visitas</string>
+    <string name="menu_establecimiento">Mi Establecimiento</string>
+    <string name="estab_edit_title">Mi Establecimiento</string>
+    <string name="estab_edit_telefono">Teléfono del Dispositivo</string>
+    <string name="main_escanear">Escanear DNI</string>
 </resources>
