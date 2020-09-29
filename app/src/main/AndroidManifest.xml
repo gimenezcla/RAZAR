@@ -66,6 +66,7 @@
             </intent-filter>
         </receiver>
         <receiver android:name=".AlarmEnviadorReceiver" />
+        <!--<service android:enabled="true" android:name=".MyBrodcastRecieverService" />-->
     </application>
 
 </manifest>

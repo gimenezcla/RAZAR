@@ -17,6 +17,8 @@ public class SplashActivity extends AppCompatActivity {
 
         // Tenemos una plantilla llamada splash.xml donde mostraremos la información que queramos (logotipo, etc.)
         setContentView(R.layout.activity_splash);
+        //Intent service = new Intent(this, MyBrodcastRecieverService.class);
+        //startService(service);
 
         new Handler().postDelayed(new Runnable(){
             public void run(){
