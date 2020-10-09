@@ -543,6 +543,14 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             if( resultCode == RESULT_OK){
                 idUsuEstab = Persistencia.getIdUsuEstabDBLocal();
                 getLocationShot();
+            }else
+            {
+                idUsuEstab = Persistencia.getIdUsuEstabDBLocal();
+                if(idUsuEstab == 0) {
+                    //Inicia proceso de registración
+                    Intent documento = new Intent(MainActivity.this, DocumentoActivity.class);
+                    startActivityForResult(documento, 0x0000c0dd);
+                }
             }
             return;
         }
