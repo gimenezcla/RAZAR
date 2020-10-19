@@ -9,6 +9,7 @@ import android.os.Handler;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.RadioButton;
@@ -51,6 +52,21 @@ public class EstablecimientoActivity extends AppCompatActivity {
         final EditText edTelefono = findViewById(R.id.edTelefono);
         final EditText edPermanencia = findViewById(R.id.edPermanencia);
         final RadioButton EntradasYSalidas = findViewById(R.id.EntradasYSalidas);
+        final RadioButton Solo_Entradas = findViewById(R.id.Solo_Entradas);
+
+        //por defecto inicia solo entradas
+        Solo_Entradas.setChecked(true);
+
+        EntradasYSalidas.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if(isChecked)
+                    edPermanencia.setVisibility(View.INVISIBLE);
+                else
+                    edPermanencia.setVisibility(View.VISIBLE);
+            }
+        });
+
 
         progressBar = findViewById(R.id.progressBarComercio);
 
@@ -101,7 +117,8 @@ public class EstablecimientoActivity extends AppCompatActivity {
                             Toast.LENGTH_SHORT);
                     return;
                 }
-                if (edPermanencia.getText().toString().isEmpty()) {
+                if ((edPermanencia.getText().toString().isEmpty() || edPermanencia.getText().toString().equals("0")) &&
+                        !EntradasYSalidas.isChecked()) {
                     CustomToast.showError(EstablecimientoActivity.this,
                             "Debe ingresar los minutos promedios de atención en local",
                             Toast.LENGTH_SHORT);
@@ -138,7 +155,7 @@ public class EstablecimientoActivity extends AppCompatActivity {
                                                 Domicilio,
                                                 Telefono,
                                                 Localidad,
-                                                false,//RegistraSalidas,
+                                                RegistraSalidas,
                                                 MainActivity.USUARIO,
                                                 Permanencia,
                                                 DocumentoActivity.Telefono,

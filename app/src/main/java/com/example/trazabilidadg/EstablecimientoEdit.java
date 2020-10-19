@@ -8,6 +8,7 @@ import android.os.Handler;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.RadioButton;
@@ -74,23 +75,41 @@ public class EstablecimientoEdit extends AppCompatActivity {
         listaLocalidades.add(0,"Seleccione una Localidad...");
         spLocalidad.setAdapter(new ArrayAdapter<String>(this,android.R.layout.simple_spinner_dropdown_item, listaLocalidades));
 
+        edCuitDniResponsable.setVisibility(View.VISIBLE);
+        edCuitDniResponsable.setText(establecimiento.CuitDniResponsable);
+        edCuitDniResponsable.setEnabled(false);
+
         edNombreEstablecimiento.setEnabled(false);
         edNombreEstablecimiento.setVisibility(View.VISIBLE);
         edNombreEstablecimiento.setText(establecimiento.NombreEstablecimiento);
+
+        EntradasYSalidas.setVisibility(View.VISIBLE);
+        Solo_Entradas.setVisibility(View.VISIBLE);
+
 
         edTelefono.setEnabled(false);
         edTelefono.setVisibility(View.VISIBLE);
         edTelefono.setText(establecimiento.Telefono);
 
-        if(establecimiento.CuitDniResponsable != null )
+        EntradasYSalidas.setVisibility(View.VISIBLE);
+        Solo_Entradas.setVisibility(View.VISIBLE);
+
+        if(establecimiento.RegistraSalidas) {
+            EntradasYSalidas.setChecked(true);
+        }else{
+            Solo_Entradas.setChecked(true);
+        }
+
+        EntradasYSalidas.setEnabled(false);
+        Solo_Entradas.setEnabled(false);
+
+        if(!establecimiento.TelefonoEstab.isEmpty() )
         {
             edNombreEstablecimiento.setEnabled(true);
             edTelefono.setEnabled(true);
+            edCuitDniResponsable.setEnabled(true);
 
             //edCuitDniResponsable.setEnabled(true);
-            edCuitDniResponsable.setVisibility(View.VISIBLE);
-            edCuitDniResponsable.setText(establecimiento.CuitDniResponsable);
-            edCuitDniResponsable.setEnabled(true);
 
             edDomicilio.setVisibility(View.VISIBLE);
             edDomicilio.setText(establecimiento.Domicilio);
@@ -98,19 +117,30 @@ public class EstablecimientoEdit extends AppCompatActivity {
             edNombreResponsable.setVisibility(View.VISIBLE);
             edNombreResponsable.setText(establecimiento.NombreResponsable);
 
-            edPermanencia.setVisibility(View.VISIBLE);
             edPermanencia.setText(establecimiento.Permanencia.toString());
 
             edTelefonoEstab.setVisibility(View.VISIBLE);
             edTelefonoEstab.setText(establecimiento.TelefonoEstab);
 
-            EntradasYSalidas.setVisibility(View.GONE);
-            Solo_Entradas.setVisibility(View.GONE);
 
-            if(establecimiento.RegistraSalidas.contains("SI"))
+
+            if(establecimiento.RegistraSalidas) {
                 EntradasYSalidas.setChecked(true);
-            else
+                edPermanencia.setVisibility(View.INVISIBLE);
+            }else{
                 Solo_Entradas.setChecked(true);
+                edPermanencia.setVisibility(View.VISIBLE);
+            }
+
+            EntradasYSalidas.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                    if(isChecked)
+                        edPermanencia.setVisibility(View.INVISIBLE);
+                    else
+                        edPermanencia.setVisibility(View.VISIBLE);
+                }
+            });
 
             spLocalidad.setVisibility(View.VISIBLE);
             int IndexLocalidad = listaLocalidades.indexOf(establecimiento.Localidad);
@@ -138,7 +168,8 @@ public class EstablecimientoEdit extends AppCompatActivity {
                             Toast.LENGTH_SHORT);
                     return;
                 }
-                if (edPermanencia.getText().toString().isEmpty()) {
+                if ((edPermanencia.getText().toString().isEmpty() || edPermanencia.getText().toString().equals("0")) &&
+                        !EntradasYSalidas.isChecked() ) {
                     CustomToast.showError(EstablecimientoEdit.this,
                             "Debe ingresar los minutos promedios de atención en local",
                             Toast.LENGTH_SHORT);
@@ -181,6 +212,9 @@ public class EstablecimientoEdit extends AppCompatActivity {
                     return;
                 }
 
+
+                progressBarComercio.setVisibility(View.VISIBLE);
+
                 final String CuitDniResponsable = edCuitDniResponsable.getText().toString();
                 final String NombreEstablecimiento = edNombreEstablecimiento.getText().toString();
                 final String NombreResponsable = edNombreResponsable.getText().toString();
@@ -195,8 +229,6 @@ public class EstablecimientoEdit extends AppCompatActivity {
                 //Cierra y vuelve a Main.
                 final String Permanencia = edPermanencia.getText().toString();
 
-
-                progressBarComercio.setVisibility(View.VISIBLE);
                 final Handler h = new Handler();
                 //Cierra y vuelve a Main.
                 final boolean finalRegistraSalidas = RegistraSalidas;

@@ -1,8 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:app="http://schemas.android.com/apk/res-auto"
-
     xmlns:android="http://schemas.android.com/apk/res/android">
     <item
         android:id="@+id/establecimiento"
         android:title="@string/menu_establecimiento" />
+
+    <item
+        android:id="@+id/registrarEntradas"
+        android:title="Registrar Entradas"
+        android:visible="true"/>
+    <item
+        android:id="@+id/registrarSalidas"
+        android:title="Registrar Salidas"
+        android:visible="false"/>
 </menu>

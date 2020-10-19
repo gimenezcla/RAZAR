@@ -3,7 +3,7 @@ package com.example.trazabilidadg;
 import java.util.Date;
 
 public class Establecimiento {
-    public int IdUsuEstab;
+    public Integer IdUsuEstab;
     public String CuitDniResponsable = "";
     public String NombreEstablecimiento;
     public String Domicilio;
@@ -11,7 +11,10 @@ public class Establecimiento {
     public String TelefonoEstab;
     public String Telefono;
     public String NombreResponsable;
-    public String RegistraSalidas;
+    public Boolean RegistraSalidas;
     public Integer Permanencia;
     public Date Fecha_Creacion;
+
+    public String TipoMovimientoActual;
+
 }

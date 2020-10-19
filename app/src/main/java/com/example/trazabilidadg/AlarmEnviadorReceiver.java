@@ -19,6 +19,8 @@ public class AlarmEnviadorReceiver extends BroadcastReceiver {
                 Persistencia persistencia = new Persistencia(db);
                 persistencia.EnviarVisitasMasivasPendientes();
 
+                persistencia.ActualizarDatosLocalEstablecimiento();
+
                 return null;
             }
 

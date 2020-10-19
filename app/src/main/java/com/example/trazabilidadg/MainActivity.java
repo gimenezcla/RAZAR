@@ -3,8 +3,6 @@ package com.example.trazabilidadg;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
-import androidx.core.app.NotificationCompat;
-import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.ContextCompat;
 
 import android.accounts.AccountManager;
@@ -13,7 +11,6 @@ import android.app.AlertDialog;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.database.sqlite.SQLiteDatabase;
 
@@ -22,7 +19,6 @@ import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
-import android.net.ConnectivityManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.Settings;
@@ -73,18 +69,39 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu, menu);
         return true;
     }
 
     @Override
+    public boolean onPrepareOptionsMenu(final Menu menu) {
+        setMenuEntradaSalida(menu);
+        return super.onPrepareOptionsMenu(menu);
+    }
+
+    private void setMenuEntradaSalida(Menu _menu) {
+        Establecimiento establecimiento = persistencia.getEstablecimientoLocal();
+        if(establecimiento != null){
+            if(establecimiento.RegistraSalidas)
+                _menu.findItem(R.id.registrarSalidas).setVisible(true);
+            else
+                _menu.findItem(R.id.registrarSalidas).setVisible(false);
+        }
+    }
+
+    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
 
-        switch(item.getItemId()) {
+        switch (item.getItemId()) {
             case R.id.establecimiento:
                 Intent intent = new Intent(MainActivity.this, EstablecimientoEdit.class);
                 startActivityForResult(intent, 9988);
+                return true;
+            case R.id.registrarEntradas:
+                SetTipoRegistroActual("ENTRADA");
+                return true;
+            case R.id.registrarSalidas:
+                SetTipoRegistroActual("SALIDA");
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -92,12 +109,30 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
     }
 
+    private void SetTipoRegistroActual(String tipo) {
+        persistencia.setTipoMovimientoActual(tipo);
+        ActualizarUI();
+    }
+
+    private void ActualizarUI() {
+        String titulo = "Registro de Entradas";
+        Establecimiento establecimiento = persistencia.getEstablecimientoLocal();
+
+        if(establecimiento != null )
+            if(establecimiento.TipoMovimientoActual != null && establecimiento.TipoMovimientoActual.equals("SALIDA")){
+                titulo = "Registro de Salidas";
+                findViewById(R.id.txtTelefono).setVisibility(View.GONE);
+            }else
+                findViewById(R.id.txtTelefono).setVisibility(View.VISIBLE);
+
+        ((TextView)findViewById(R.id.titulo)).setText(titulo);
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         //registerReceiver(new NetworkReceiver(), new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
-
 
             txtDNI = findViewById(R.id.txtDNI);
             txtApellido = findViewById(R.id.txtApellidos);
@@ -119,7 +154,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             // si no ha sido previamente creada, creo la tabla "QR" con columnas "timestamp", "qr", "telefono" y "descripcion".
             //   db.execSQL("DROP TABLE IF EXISTS QRs");
 
-
+           //Log.e("XOR",persistencia.encode("hola","chau"));
             // le paso a la Activida con el list view la referencia al objeto con la conexión a la base de datos
             ActivityHistorial.DB = db;
 
@@ -219,9 +254,42 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
             persistencia.Eliminar30Dias();
 
-            CheckVersion();
+            CheckDatosPendientes();
 
+            CheckVersion();
+            ActualizarUI();
        }
+
+    public void CheckDatosPendientes(){
+        Integer dias = persistencia.getCantidadDiasPendientes();
+        if(dias >= 1)
+        {
+            AlertDialog.Builder alertDialog = new AlertDialog.Builder(MainActivity.this);
+            alertDialog.setCancelable(false);
+            alertDialog.setTitle("Trazar - Trazabilidad Digital");
+            alertDialog.setMessage("Por favor conecte a Internet su dispositivo para" +
+                    " subir la trazabilidad al servidor principal de Salud.");
+            alertDialog.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.cancel();
+                }
+            });
+
+            if(dias >=4){
+                alertDialog.setMessage("Para continuar usando la App, por favor conecte a Internet su dispositivo para" +
+                        " subir la trazabilidad al servidor principal de Salud.");
+                alertDialog.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                            MainActivity.this.finish();
+                    }
+                });
+            }
+
+            alertDialog.show();
+        }
+    }
 
     private void CheckVersion() {
         new AsyncTask<String, Void, String>() {
@@ -396,38 +464,51 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             return;
         }
 
+
         idUsuEstab = Persistencia.getIdUsuEstabDBLocal();
         if(idUsuEstab> 0)
         {
-            /*SingleShotLocationProvider.requestSingleUpdate(MainActivity.this,
+            findViewById(R.id.progressBarMain).setVisibility(View.VISIBLE);
+            SingleShotLocationProvider.requestSingleUpdate(MainActivity.this,
                     new SingleShotLocationProvider.LocationCallback() {
                         @Override
-                        public void onNewLocationAvailable(final SingleShotLocationProvider.GPSCoordinates location) {*/
-                            persistencia.GuardarVisita( txtDNI.getText().toString().replaceAll("[^0-9]+","").trim(),
-                                    txtApellido.getText().toString(),
-                                    txtNombres.getText().toString(),
-                                    Genero,
-                                    txtTelefono.getText().toString().replaceAll("[^0-9]+","").trim(),
-                                    String.valueOf(latitude),//location.latitude),
-                                    String.valueOf(longitude),//location.longitude),
-                                    txtDescripcion.getText().toString(),
-                                    idUsuEstab,
-                                    "ENTRADA");
-                            // creo un "objeto" consulta al cual le voy a asignar los valores reemplazando los signos de pregunta en orden
-                            CustomToast.showSuccess(MainActivity.this, "Visita registrada con éxito", Toast.LENGTH_SHORT);
-                            VaciarCampos();
-                            if(Genero.isEmpty())
+                        public void onNewLocationAvailable(SingleShotLocationProvider.GPSCoordinates location) {
+
+                            if(location!= null && location.latitude!=0)
                             {
-                                txtDNI.setFocusableInTouchMode(true);
-                                txtDNI.requestFocus();
+                                persistencia.GuardarVisita( txtDNI.getText().toString().replaceAll("[^0-9]+","").trim(),
+                                        txtApellido.getText().toString(),
+                                        txtNombres.getText().toString(),
+                                        Genero,
+                                        txtTelefono.getText().toString().replaceAll("[^0-9]+","").trim(),
+                                        String.valueOf(latitude),//location.latitude),
+                                        String.valueOf(longitude),//location.longitude),
+                                        txtDescripcion.getText().toString(),
+                                        idUsuEstab,
+                                        persistencia.getEstablecimientoLocal().TipoMovimientoActual);
+
+                                CustomToast.showSuccess(MainActivity.this, "Visita registrada con éxito", Toast.LENGTH_SHORT);
+
+                                VaciarCampos();
+                                if(Genero.isEmpty())
+                                {
+                                    txtDNI.setFocusableInTouchMode(true);
+                                    txtDNI.requestFocus();
+                                }
+                            }else
+                            {
+                                CustomToast.showError(MainActivity.this,
+                                        "Ocurrio un error con el GPS de su dispositivo, por favor vuelva a intentar.", Toast.LENGTH_LONG);
                             }
-                      /*  }
+                        }
                     }
-            );*/
+             );
 
+            findViewById(R.id.progressBarMain).setVisibility(View.GONE);
         }else
-            CustomToast.showError(MainActivity.this, "Ocurrio un error al guardar los datos, por favor cierre y vuelva a intentar.", Toast.LENGTH_SHORT);
+            CustomToast.showError(MainActivity.this, "Ocurrio un error al guardar los datos, por favor cierre y vuelva a intentar.", Toast.LENGTH_LONG);
 
+        CheckDatosPendientes();
     }
 
     public void escanear() {
@@ -543,6 +624,8 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             if( resultCode == RESULT_OK){
                 idUsuEstab = Persistencia.getIdUsuEstabDBLocal();
                 getLocationShot();
+                supportInvalidateOptionsMenu();
+                findViewById(R.id.progressBarMain).setVisibility(View.GONE);
             }else
             {
                 idUsuEstab = Persistencia.getIdUsuEstabDBLocal();
@@ -569,6 +652,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 idUsuEstab = Persistencia.getIdUsuEstabDBLocal();
                 if(idUsuEstab == 0) {
                     //Inicia proceso de registración
+                    findViewById(R.id.progressBarMain).setVisibility(View.VISIBLE);
                     Intent documento = new Intent(MainActivity.this, DocumentoActivity.class);
                     startActivityForResult(documento, 0x0000c0dd);
                 }

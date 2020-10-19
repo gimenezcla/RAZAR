@@ -1,26 +1,36 @@
 package com.example.trazabilidadg;
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteStatement;
+import android.util.Base64;
 import android.util.Log;
+
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
@@ -30,14 +40,17 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
+import java.util.concurrent.TimeUnit;
 
+import javax.crypto.Cipher;
+import javax.crypto.spec.SecretKeySpec;
 import javax.net.ssl.HttpsURLConnection;
 
 public class Persistencia {
   public static SQLiteDatabase db;
   public final String versionActual = "1";
 
-  private String UrlServidor = "https://www.programainformatico.sanluis.gob.ar/ords/salud/"; //trazabilidad/seguimiento/
+  private String UrlServidor = "https://www.programainformatico.sanluis.gob.ar/ords/salud/TrazabilidadTest/"; //seguimiento/
 
   public static Integer getIdUsuEstabDBLocal() {
     Cursor cursor = db.rawQuery("Select COALESCE(MAX(ID_USU_ESTAB),0) from ESTAB_USUARIO",null);
@@ -51,7 +64,7 @@ public class Persistencia {
     param.put("CUIT", cuit);
 
     //realiza el post
-    Map<String,Object> retorno = Post(UrlServidor+"trazabilidad/getEstabPorCuit/",param);
+    Map<String,Object> retorno = Post(UrlServidor+"getEstabPorCuit/",param);
 
     LinkedHashMap<String, Integer> Establecimientos = new LinkedHashMap<>();
 
@@ -86,7 +99,7 @@ public class Persistencia {
     param.put("TELEFONO_USU", telefonoUsu);
 
     Map<String,Object> retorno =
-            Post(UrlServidor+"trazabilidad/setUsuario/",param); //realiza el post
+            Post(UrlServidor+"setUsuario/",param); //realiza el post
 
     Integer IdUsuEstab = Integer.parseInt(retorno.get("P_ID_USU_ESTAB").toString());
     String registraSalidas = retorno.get("P_REGISTRA_SALIDA").toString() == "SI" ? "1" :"0" ;
@@ -103,6 +116,10 @@ public class Persistencia {
     consulta.bindString(4, telefonoUsu);
 
     consulta.executeInsert();
+
+    //Recupera todos los datos del establecimiento.
+    ActualizarDatosLocalEstablecimiento();
+
     return IdUsuEstab;
   }
 
@@ -126,12 +143,12 @@ public class Persistencia {
     param.put("LATITUD", String.valueOf(latitude));
     param.put("LONGITUD", String.valueOf(longitude));
 
-    Map<String,Object> retorno =  Post(UrlServidor+"trazabilidad/setUsuEstab/",param);
+    Map<String,Object> retorno =  Post(UrlServidor+"setUsuEstab/",param);
     Integer IdUsuEstab = Integer.parseInt(retorno.get("P_ID_USU_ESTAB").toString());
 
     SQLiteStatement consulta = db.compileStatement(
             " INSERT INTO ESTAB_USUARIO( ID_USU_ESTAB , NOMBRE , CUIT_DNI , LOCALIDAD , LATITUD , LONGITUD , RESPONSABLE , TELEFONO , " +
-                    "DOMICILIO , REGISTRA_SALIDA , TIEMPO_PERMANENCIA, TELEFONO_USU ) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+                    "DOMICILIO , REGISTRA_SALIDA , TIEMPO_PERMANENCIA, TELEFONO_USU, TIPO_MOVIMIENTO_ACTUAL ) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
     );
     consulta.bindString(1, IdUsuEstab.toString());
     consulta.bindString(2, nombreEstablecimiento);
@@ -145,6 +162,7 @@ public class Persistencia {
     consulta.bindString(10, registraSalidas?"1":"0");
     consulta.bindString(11, permanencia);
     consulta.bindString(12, telefonoUsu);
+    consulta.bindString(13, "ENTRADA");
 
     consulta.executeInsert();
     //realiza el post
@@ -286,7 +304,7 @@ public class Persistencia {
       HashMap<String, String> param = new HashMap();
       param.put("CSV", CSV);
 
-      if(Post(UrlServidor + "trazabilidad/setVisitas/", param)!= null) //realiza el post
+      if(Post(UrlServidor + "setVisitas/", param)!= null) //realiza el post
       {
         SQLiteStatement consulta = db.compileStatement(
                 " UPDATE QRs set enviado = 1 where enviado=0 and id_registro <= ? "
@@ -338,7 +356,8 @@ public class Persistencia {
             "        DOMICILIO VARCHAR," +
             "        REGISTRA_SALIDA VARCHAR," +
             "        TIEMPO_PERMANENCIA VARCHAR," +
-            "        enviado BOOLEAN" +
+            "        enviado BOOLEAN," +
+            "        TIPO_MOVIMIENTO_ACTUAL VARCHAR DEFAULT 'ENTRADA' "+
             ")");
     db.execSQL("CREATE TABLE IF NOT EXISTS VERSION(" +
             "        N_VERSION VARCHAR," +
@@ -621,8 +640,9 @@ public class Persistencia {
       establecimiento.TelefonoEstab = cursor.getString(9);
       establecimiento.Telefono = cursor.getString(10);
       establecimiento.Domicilio = cursor.getString(11);
-      establecimiento.RegistraSalidas = cursor.getString(12);
+      establecimiento.RegistraSalidas = cursor.getInt(12)==1?true:false;
       establecimiento.Permanencia = cursor.getInt(13);
+      establecimiento.TipoMovimientoActual = cursor.getString(15);
 
       return establecimiento;
 
@@ -642,7 +662,7 @@ public class Persistencia {
       param.put("N_VERSION", versionActual);
 
       Map<String,Object> retorno =
-              Post(UrlServidor+"trazabilidad/getVersion/",param); //realiza el post
+              Post(UrlServidor+"getVersion/",param); //realiza el post
 
       if(retorno != null && retorno.get("MSG") != null)
       {
@@ -709,7 +729,7 @@ public class Persistencia {
     param.put("PERMANENCIA", permanencia);
 
 
-    Map<String,Object> retorno =  Post(UrlServidor+"trazabilidad/updateUsuEstab/",param);
+    Map<String,Object> retorno =  Post(UrlServidor+"updateUsuEstab/",param);
     String retornoString = retorno.get("RETORNO").toString();
 
     if(retornoString.equals("OK"))
@@ -740,6 +760,153 @@ public class Persistencia {
     }
 
   }
+
+  public void ActualizarDatosLocalEstablecimiento(){
+    try {
+      Establecimiento estab= getEstablecimientoLocal();
+
+      if(estab != null)
+      {
+        HashMap<String, String> param = new HashMap();
+        param.put("P_ID_USU_ESTAB", estab.IdUsuEstab.toString());
+        param.put("P_NOMBRE", estab.NombreEstablecimiento);
+        param.put("P_TELEFONO_USU", estab.Telefono);
+
+        Map<String,Object> retorno =  Post(UrlServidor+"getEstablecimiento/",param);
+
+        if (retorno != null && retorno.size() >0)
+        {
+          SQLiteStatement consulta = db.compileStatement(
+                  " UPDATE ESTAB_USUARIO " +
+                          "SET NOMBRE = ?," +
+                          "    LOCALIDAD = ?, " +
+                          "    RESPONSABLE = ? ," +
+                          "    TELEFONO = ? , " +
+                          "    DOMICILIO = ? ," +
+                          "    REGISTRA_SALIDA = ?, " +
+                          "    CUIT_DNI = ?, " +
+                          "    TIEMPO_PERMANENCIA = ?"
+          );
+          consulta.bindString(1, retorno.get("NOMBRE").toString());
+          consulta.bindString(2, retorno.get("LOCALIDAD")!= null? retorno.get("LOCALIDAD").toString():"");
+          consulta.bindString(3, retorno.get("RESPONSABLE")!= null? retorno.get("RESPONSABLE").toString():"");
+          consulta.bindString(4, retorno.get("TELEFONO")!= null? retorno.get("TELEFONO").toString():"");
+          consulta.bindString(5, retorno.get("DOMICILIO")!= null? retorno.get("DOMICILIO").toString():"");
+          consulta.bindString(6, retorno.get("REGISTRA_SALIDA").toString().equals("SI")?"1":"0");
+          consulta.bindString(7, retorno.get("CUIT_DNI")!= null? retorno.get("CUIT_DNI").toString():"");
+          consulta.bindString(8, retorno.get("TIEMPO_PERMANENCIA")!= null? retorno.get("TIEMPO_PERMANENCIA").toString():"");
+
+          consulta.executeUpdateDelete();
+        }
+
+
+      }
+
+
+    }catch (Exception e){
+      Log.e("Error",e.getMessage());
+    }
+  }
+
+
+  public void setTipoMovimientoActual(String tipo) {
+
+    SQLiteStatement consulta = db.compileStatement(
+            " UPDATE ESTAB_USUARIO " +
+                    "SET TIPO_MOVIMIENTO_ACTUAL = ?"
+    );
+    consulta.bindString(1, tipo);
+
+    consulta.executeUpdateDelete();
+  }
+
+  public Integer getCantidadDiasPendientes(){
+    try {
+    Cursor cursor = db.rawQuery("Select MIN(FECHA) from QRs where enviado = 0 ",null);
+    cursor.moveToNext();
+
+    DateFormat formatterServer = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+    formatterServer.setTimeZone(TimeZone.getTimeZone("UTC−03:00"));
+    Date pFecha = formatterServer.parse(cursor.getString(0));
+    long diffInMillies = Math.abs(new Date().getTime() - pFecha.getTime());
+    Long diff = TimeUnit.DAYS.convert(diffInMillies, TimeUnit.MILLISECONDS);
+
+    return diff != null ? diff.intValue() : 0;
+
+
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return 0;
+  }
+
+  //////////////////////////////////////////
+
+  public String encode(String s, String key) {
+    return base64Encode(xorWithKey(s.getBytes(), key.getBytes()));
+  }
+
+  public String decode(String s, String key) {
+    return new String(xorWithKey(base64Decode(s), key.getBytes()));
+  }
+
+  private byte[] xorWithKey(byte[] a, byte[] key) {
+    byte[] out = new byte[a.length];
+    for (int i = 0; i < a.length; i++) {
+      out[i] = (byte) (a[i] ^ key[i%key.length]);
+    }
+    return out;
+  }
+
+  private byte[] base64Decode(String s) {
+    try {
+
+      return Base64.decode(s, Base64.DEFAULT);
+    } catch (Exception e) {e.printStackTrace();}
+    return null;
+  }
+
+  private String base64Encode(byte[] bytes) {
+
+    return Base64.encodeToString(bytes,Base64.DEFAULT).replaceAll("\\s", "");
+
+  }
+
+
+  public void Encriptar(String dataIn){
+    MessageDigest sha = null;
+    try {
+      byte[] key = "MyEncriptionKey1".getBytes("UTF-8");
+      sha = MessageDigest.getInstance("SHA-1");
+      key = sha.digest(key);
+      key = Arrays.copyOf(key, 16);
+      SecretKeySpec secretKey = new SecretKeySpec(key, "AES");
+
+      Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+      cipher.init(Cipher.ENCRYPT_MODE, secretKey);
+      byte[] data = cipher.doFinal(dataIn.getBytes());
+
+      Log.i("texto", Base64.encodeToString(data, Base64.CRLF));
+    }
+    catch (Exception e) {
+      e.printStackTrace();
+    }
+
+  }
+
+  public static boolean checkPermission(Context context,String permission, int requestCode) {
+    if (ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_DENIED) {
+      ActivityCompat.requestPermissions(
+              (Activity) context,
+              new String[]{permission},
+              requestCode
+      );
+    }
+    return ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED;
+  }
+
+
+
 }
 
 

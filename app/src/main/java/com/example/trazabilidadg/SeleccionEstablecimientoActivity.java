@@ -28,6 +28,9 @@ public class SeleccionEstablecimientoActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_seleccion__establecimiento);
 
+        progressBar = findViewById(R.id.progressBarSeleccion);
+        progressBar.setVisibility(View.VISIBLE);
+
         //Carga los establecimientos encontrados con el cuit.
         final Spinner spinnerEstablecimiento = findViewById(R.id.spinnerEstablecimiento);
         final Handler h = new Handler();
@@ -46,6 +49,7 @@ public class SeleccionEstablecimientoActivity extends AppCompatActivity {
                             spinnerEstablecimiento.setAdapter(new ArrayAdapter<String>(
                                     SeleccionEstablecimientoActivity.this,android.R.layout.simple_spinner_item,
                                     (List<String>) new ArrayList<>(Establecimientos.keySet())));
+                            progressBar.setVisibility(View.GONE);
                         }else
                         {
             /*spinnerEstablecimiento.setVisibility(View.INVISIBLE);
@@ -53,8 +57,10 @@ public class SeleccionEstablecimientoActivity extends AppCompatActivity {
                             Intent intent = new Intent(SeleccionEstablecimientoActivity.this, EstablecimientoActivity.class);
                             startActivityForResult(intent,12);
                         }
+
                     }
                 });
+
 
                 return null;
             }
@@ -64,43 +70,40 @@ public class SeleccionEstablecimientoActivity extends AppCompatActivity {
 
 
         Button buttonSeleccionar = findViewById(R.id.buttonSeleccionar);
-        progressBar = findViewById(R.id.progressBarSeleccion);
-
-        //Si encontra establecimiento asigno lista,sino oculto el selector y el boton seleccionar.
 
 
-            buttonSeleccionar.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    //Abre Seleccion establecimiento
-                    final String nombreEstablecimiento = spinnerEstablecimiento.getSelectedItem().toString();
-                    idEstablecimiento = Establecimientos.get(nombreEstablecimiento);
-                    progressBar.setVisibility(View.VISIBLE);
+        buttonSeleccionar.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //Abre Seleccion establecimiento
+                final String nombreEstablecimiento = spinnerEstablecimiento.getSelectedItem().toString();
+                idEstablecimiento = Establecimientos.get(nombreEstablecimiento);
+                progressBar.setVisibility(View.VISIBLE);
 
-                    //Cierra y vuelve a Main.
-                    new AsyncTask<Void, Void, Void>() {
-                        @Override
-                        protected Void doInBackground(final Void ... params ) {
-                            // something you know that will take a few seconds
-                            int IdUsuEstab = MainActivity.persistencia.GuardarUsuario(idEstablecimiento,
-                                                    nombreEstablecimiento,
-                                                    MainActivity.USUARIO,
-                                                    DocumentoActivity.Telefono);
+                //Cierra y vuelve a Main.
+                new AsyncTask<Void, Void, Void>() {
+                    @Override
+                    protected Void doInBackground(final Void ... params ) {
+                        // something you know that will take a few seconds
+                        int IdUsuEstab = MainActivity.persistencia.GuardarUsuario(idEstablecimiento,
+                                                nombreEstablecimiento,
+                                                MainActivity.USUARIO,
+                                                DocumentoActivity.Telefono);
 
-                            h.post(new Runnable() {
-                                @Override
-                                public void run() {
-                                    progressBar.setVisibility(View.INVISIBLE);
-                                    setResult(SeleccionEstablecimientoActivity.RESULT_OK,new Intent());
-                                    finish();
-                                }
-                            });
+                        h.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                progressBar.setVisibility(View.INVISIBLE);
+                                setResult(SeleccionEstablecimientoActivity.RESULT_OK,new Intent());
+                                finish();
+                            }
+                        });
 
-                            return null;
-                        }
+                        return null;
+                    }
 
-                    }.execute();
-                }
+                }.execute();
+            }
             });
 
 
@@ -129,6 +132,9 @@ public class SeleccionEstablecimientoActivity extends AppCompatActivity {
         if (resultCode==RESULT_OK)
         {
             setResult(RESULT_OK, new Intent());
+            finish();
+        }else
+        {
             finish();
         }
     }
