@@ -660,6 +660,7 @@ public class Persistencia {
       HashMap<String, String> param = new HashMap();
       param.put("ID_USU_ESTAB", idUsuEstab.toString());
       param.put("N_VERSION", versionActual);
+      param.put("OS", "ANDROID");
 
       Map<String,Object> retorno =
               Post(UrlServidor+"getVersion/",param); //realiza el post

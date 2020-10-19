@@ -450,12 +450,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                     Toast.LENGTH_SHORT);
             return;
         }
-        if (txtTelefono.getText().toString().replaceAll("[^0-9]+","").isEmpty()) {
-            CustomToast.showError(this,
-                    "Debe ingresar el Teléfono",
-                    Toast.LENGTH_SHORT);
-            return;
-        }
 
         if (txtTelefono.getText().toString().length()>10) {
             CustomToast.showError(this,
@@ -464,8 +458,16 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             return;
         }
 
+        if (txtTelefono.getText().toString().replaceAll("[^0-9]+","").isEmpty()
+                && txtTelefono.getVisibility() == View.VISIBLE ) {
+            CustomToast.showError(this,
+                    "Debe ingresar el Teléfono",
+                    Toast.LENGTH_SHORT);
+            return;
+        }
 
-        idUsuEstab = Persistencia.getIdUsuEstabDBLocal();
+        final Establecimiento establecimientoLocal = persistencia.getEstablecimientoLocal();
+        idUsuEstab = establecimientoLocal.IdUsuEstab;
         if(idUsuEstab> 0)
         {
             findViewById(R.id.progressBarMain).setVisibility(View.VISIBLE);
@@ -485,7 +487,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                                         String.valueOf(longitude),//location.longitude),
                                         txtDescripcion.getText().toString(),
                                         idUsuEstab,
-                                        persistencia.getEstablecimientoLocal().TipoMovimientoActual);
+                                        establecimientoLocal.TipoMovimientoActual);
 
                                 CustomToast.showSuccess(MainActivity.this, "Visita registrada con éxito", Toast.LENGTH_SHORT);
 

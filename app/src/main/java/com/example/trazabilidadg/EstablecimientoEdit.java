@@ -108,6 +108,8 @@ public class EstablecimientoEdit extends AppCompatActivity {
             edNombreEstablecimiento.setEnabled(true);
             edTelefono.setEnabled(true);
             edCuitDniResponsable.setEnabled(true);
+            EntradasYSalidas.setEnabled(true);
+            Solo_Entradas.setEnabled(true);
 
             //edCuitDniResponsable.setEnabled(true);
 
