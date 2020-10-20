@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteStatement;
 import android.util.Base64;
 import android.util.Log;
@@ -48,9 +49,9 @@ import javax.net.ssl.HttpsURLConnection;
 
 public class Persistencia {
   public static SQLiteDatabase db;
-  public final String versionActual = "1";
+  public final String versionActual = "1.1";
 
-  private String UrlServidor = "https://www.programainformatico.sanluis.gob.ar/ords/salud/TrazabilidadTest/"; //seguimiento/
+  private String UrlServidor;
 
   public static Integer getIdUsuEstabDBLocal() {
     Cursor cursor = db.rawQuery("Select COALESCE(MAX(ID_USU_ESTAB),0) from ESTAB_USUARIO",null);
@@ -64,20 +65,29 @@ public class Persistencia {
     param.put("CUIT", cuit);
 
     //realiza el post
-    Map<String,Object> retorno = Post(UrlServidor+"getEstabPorCuit/",param);
+    Map<String,Object> retorno = null;
+    try {
+      retorno = Post(UrlServidor+
+                      new String(Base64.decode("L2dldEVzdGFiUG9yQ3VpdC8="
+              ,Base64.DEFAULT),"UTF-8")
+              ,param);//"/getEstabPorCuit/"
 
-    LinkedHashMap<String, Integer> Establecimientos = new LinkedHashMap<>();
+      LinkedHashMap<String, Integer> Establecimientos = new LinkedHashMap<>();
 
-    if (retorno != null) {
-      String csvEstablecimientos = retorno.get("P_LISTA").toString();
+      if (retorno != null) {
+        String csvEstablecimientos = retorno.get("P_LISTA").toString();
 
-      String str[] = csvEstablecimientos.split("#");
-      for (int i = 0; i < str.length; i++) {
-        String arr[] = str[i].split(";");
-        Establecimientos.put(arr[1], Integer.parseInt(arr[0]));
+        String str[] = csvEstablecimientos.split("#");
+        for (int i = 0; i < str.length; i++) {
+          String arr[] = str[i].split(";");
+          Establecimientos.put(arr[1], Integer.parseInt(arr[0]));
+        }
       }
+      return Establecimientos;
+    } catch (UnsupportedEncodingException e) {
+      e.printStackTrace();
     }
-    return Establecimientos;
+    return null;
   }
 
   public ArrayList<String> getLocalidades() {
@@ -99,7 +109,15 @@ public class Persistencia {
     param.put("TELEFONO_USU", telefonoUsu);
 
     Map<String,Object> retorno =
-            Post(UrlServidor+"setUsuario/",param); //realiza el post
+            null;
+    try {
+      retorno = Post(UrlServidor+
+                      new String(Base64.decode("L3NldFVzdWFyaW8v"
+                              ,Base64.DEFAULT),"UTF-8")
+              ,param);//"/setUsuario/"
+    } catch (UnsupportedEncodingException e) {
+      e.printStackTrace();
+    }
 
     Integer IdUsuEstab = Integer.parseInt(retorno.get("P_ID_USU_ESTAB").toString());
     String registraSalidas = retorno.get("P_REGISTRA_SALIDA").toString() == "SI" ? "1" :"0" ;
@@ -143,7 +161,15 @@ public class Persistencia {
     param.put("LATITUD", String.valueOf(latitude));
     param.put("LONGITUD", String.valueOf(longitude));
 
-    Map<String,Object> retorno =  Post(UrlServidor+"setUsuEstab/",param);
+    Map<String,Object> retorno = null;
+    try {
+      retorno = Post(UrlServidor+
+                      new String(Base64.decode("L3NldFVzdUVzdGFiLw=="
+                              ,Base64.DEFAULT),"UTF-8")
+              ,param); //"/setUsuEstab/"
+    } catch (UnsupportedEncodingException e) {
+      e.printStackTrace();
+    }
     Integer IdUsuEstab = Integer.parseInt(retorno.get("P_ID_USU_ESTAB").toString());
 
     SQLiteStatement consulta = db.compileStatement(
@@ -174,6 +200,22 @@ public class Persistencia {
   public Persistencia( SQLiteDatabase _db) {
     db = _db;
     inicializarTablas();
+    EjecutarActualizacionDeTablas();
+
+    try {
+      UrlServidor = new String(Base64.decode("aHR0cHM6Ly93d3cucHJvZ3JhbWFpbmZvcm1hdGljby5zYW5sdWlzLmdvYi5hci9vcmRzL3NhbHVkL1RyYXphYmlsaWRhZA=="
+              ,Base64.DEFAULT),"UTF-8") + "Test";
+    } catch (UnsupportedEncodingException e) {
+      e.printStackTrace();
+    }
+  }
+
+  private void EjecutarActualizacionDeTablas() {
+    try {
+      db.execSQL("ALTER TABLE ESTAB_USUARIO ADD COLUMN TIPO_MOVIMIENTO_ACTUAL VARCHAR DEFAULT 'ENTRADA'");
+    } catch (SQLiteException ex) {
+      Log.w("UPDATE", "Altering : ESTAB_USUARIO " + ex.getMessage());
+    }
 
   }
 
@@ -215,8 +257,9 @@ public class Persistencia {
       githubEndpoint = new URL(_url);
       HttpsURLConnection myConnection =
               (HttpsURLConnection) githubEndpoint.openConnection();
-      myConnection.setRequestProperty("User-Agent", "Trazabilidad GPSL");
-//                    myConnection.setRequestProperty("Accept", "application/json");
+      myConnection.setRequestProperty(new String(Base64.decode("VXNlci1BZ2VudA==",Base64.DEFAULT),"UTF-8"),
+              new String(Base64.decode("VHJhemFiaWxpZGFkIEdQU0wt",Base64.DEFAULT),"UTF-8") +
+                      new SimpleDateFormat(new String(Base64.decode("ZGRNTXl5eXk=",Base64.DEFAULT),"UTF-8")).format(new Date()));
       myConnection.setRequestProperty("Content-Type", "application/json; utf-8");
       myConnection.setRequestMethod("POST");
       myConnection.setDoOutput(true);
@@ -304,14 +347,21 @@ public class Persistencia {
       HashMap<String, String> param = new HashMap();
       param.put("CSV", CSV);
 
-      if(Post(UrlServidor + "setVisitas/", param)!= null) //realiza el post
-      {
-        SQLiteStatement consulta = db.compileStatement(
-                " UPDATE QRs set enviado = 1 where enviado=0 and id_registro <= ? "
-        );
-        consulta.bindString(1, ultimoId);
+      try {
+        if(Post(UrlServidor +
+                        new String(Base64.decode("L3NldFZpc2l0YXMv"
+                                ,Base64.DEFAULT),"UTF-8")
+                , param)!= null) //"/setVisitas/"
+        {
+          SQLiteStatement consulta = db.compileStatement(
+                  " UPDATE QRs set enviado = 1 where enviado=0 and id_registro <= ? "
+          );
+          consulta.bindString(1, ultimoId);
 
-        consulta.executeUpdateDelete();
+          consulta.executeUpdateDelete();
+        }
+      } catch (UnsupportedEncodingException e) {
+        e.printStackTrace();
       }
     }
 
@@ -663,7 +713,15 @@ public class Persistencia {
       param.put("OS", "ANDROID");
 
       Map<String,Object> retorno =
-              Post(UrlServidor+"getVersion/",param); //realiza el post
+              null;
+      try {
+        retorno = Post(UrlServidor+
+                        new String(Base64.decode("L2dldFZlcnNpb24v"
+                                ,Base64.DEFAULT),"UTF-8")
+                ,param);//"/getVersion/"
+      } catch (UnsupportedEncodingException e) {
+        e.printStackTrace();
+      }
 
       if(retorno != null && retorno.get("MSG") != null)
       {
@@ -730,7 +788,15 @@ public class Persistencia {
     param.put("PERMANENCIA", permanencia);
 
 
-    Map<String,Object> retorno =  Post(UrlServidor+"updateUsuEstab/",param);
+    Map<String,Object> retorno = null;
+    try {
+      retorno = Post(UrlServidor+
+                      new String(Base64.decode("L3VwZGF0ZVVzdUVzdGFiLw=="
+                              ,Base64.DEFAULT),"UTF-8")
+              ,param); //"/updateUsuEstab/"
+    } catch (UnsupportedEncodingException e) {
+      e.printStackTrace();
+    }
     String retornoString = retorno.get("RETORNO").toString();
 
     if(retornoString.equals("OK"))
@@ -773,7 +839,10 @@ public class Persistencia {
         param.put("P_NOMBRE", estab.NombreEstablecimiento);
         param.put("P_TELEFONO_USU", estab.Telefono);
 
-        Map<String,Object> retorno =  Post(UrlServidor+"getEstablecimiento/",param);
+        Map<String,Object> retorno =  Post(UrlServidor+
+                        new String(Base64.decode("L2dldEVzdGFibGVjaW1pZW50by8="
+                                ,Base64.DEFAULT),"UTF-8")
+                ,param); //"/getEstablecimiento/"
 
         if (retorno != null && retorno.size() >0)
         {
@@ -793,7 +862,7 @@ public class Persistencia {
           consulta.bindString(3, retorno.get("RESPONSABLE")!= null? retorno.get("RESPONSABLE").toString():"");
           consulta.bindString(4, retorno.get("TELEFONO")!= null? retorno.get("TELEFONO").toString():"");
           consulta.bindString(5, retorno.get("DOMICILIO")!= null? retorno.get("DOMICILIO").toString():"");
-          consulta.bindString(6, retorno.get("REGISTRA_SALIDA").toString().equals("SI")?"1":"0");
+          consulta.bindString(6, "1");//retorno.get("REGISTRA_SALIDA").toString().equals("SI")?"1":"0");
           consulta.bindString(7, retorno.get("CUIT_DNI")!= null? retorno.get("CUIT_DNI").toString():"");
           consulta.bindString(8, retorno.get("TIEMPO_PERMANENCIA")!= null? retorno.get("TIEMPO_PERMANENCIA").toString():"");
 

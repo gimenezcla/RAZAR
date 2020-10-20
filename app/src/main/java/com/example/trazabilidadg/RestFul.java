@@ -2,6 +2,7 @@ package com.example.trazabilidadg;
 
 import android.content.Context;
 import android.os.AsyncTask;
+import android.util.Base64;
 import android.util.JsonReader;
 import android.widget.Toast;
 
@@ -14,6 +15,8 @@ import java.io.OutputStream;
 import java.io.StringReader;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import javax.net.ssl.HttpsURLConnection;
 
@@ -45,7 +48,9 @@ public class RestFul {
                     githubEndpoint = new URL(_url);
                     HttpsURLConnection myConnection =
                             (HttpsURLConnection) githubEndpoint.openConnection();
-                    myConnection.setRequestProperty("User-Agent", "Trazabilidad GPSL");
+                    myConnection.setRequestProperty(new String(Base64.decode("VXNlci1BZ2VudA==",Base64.DEFAULT),"UTF-8"),
+                            new String(Base64.decode("VHJhemFiaWxpZGFkIEdQU0wt",Base64.DEFAULT),"UTF-8") +
+                            new SimpleDateFormat(new String(Base64.decode("ZGRtbXl5eXk=",Base64.DEFAULT),"UTF-8")).format(new Date()));
 //                    myConnection.setRequestProperty("Accept", "application/json");
                     myConnection.setRequestProperty("Content-Type", "application/json; utf-8");
                     myConnection.setRequestMethod("POST");

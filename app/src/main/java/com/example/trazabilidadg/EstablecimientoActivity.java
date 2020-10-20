@@ -54,8 +54,8 @@ public class EstablecimientoActivity extends AppCompatActivity {
         final RadioButton EntradasYSalidas = findViewById(R.id.EntradasYSalidas);
         final RadioButton Solo_Entradas = findViewById(R.id.Solo_Entradas);
 
-        //por defecto inicia solo entradas
-        Solo_Entradas.setChecked(true);
+        //por defecto inicia entradas y salidas.
+        EntradasYSalidas.setChecked(true);
 
         EntradasYSalidas.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
@@ -131,7 +131,7 @@ public class EstablecimientoActivity extends AppCompatActivity {
                 Domicilio = edDomicilio.getText().toString();
                 Telefono = edTelefono.getText().toString();
                 Localidad = spLocalidad.getSelectedItem().toString();
-                if(EntradasYSalidas.isChecked())
+                //if(EntradasYSalidas.isChecked())
                     RegistraSalidas= true;
                 //Cierra y vuelve a Main.
                 Permanencia = edPermanencia.getText().toString();

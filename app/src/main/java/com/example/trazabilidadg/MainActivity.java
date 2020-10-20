@@ -11,6 +11,7 @@ import android.app.AlertDialog;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.database.sqlite.SQLiteDatabase;
 
@@ -22,6 +23,8 @@ import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.util.Base64;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -35,7 +38,11 @@ import com.google.android.gms.common.AccountPicker;
 import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
 
+import java.io.UnsupportedEncodingException;
+import java.security.MessageDigest;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.Map;
 
 import static android.Manifest.permission.ACCESS_COARSE_LOCATION;
@@ -258,7 +265,8 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
             CheckVersion();
             ActualizarUI();
-       }
+
+    }
 
     public void CheckDatosPendientes(){
         Integer dias = persistencia.getCantidadDiasPendientes();
