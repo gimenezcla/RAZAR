@@ -180,6 +180,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                     txtApellido.setEnabled(false);
                     txtNombres.setEnabled(false);
                     showSettingAlert();
+                    getLocationShot();
                 }
             });
 
@@ -197,6 +198,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                     InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
                     imm.showSoftInput(txtDNI, InputMethodManager.SHOW_IMPLICIT);
                     showSettingAlert();
+                    getLocationShot();
                 }
             });
 
@@ -233,7 +235,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 }
             });
 
-            getLocationShot();
+            //getLocationShot();
             getLocation();
 
             if (USUARIO.isEmpty())

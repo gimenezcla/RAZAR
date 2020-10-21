@@ -53,7 +53,7 @@ class SingleShotLocationProvider {
                     }, null);
                     return;
                 }else{
-                    CustomToast.showError(context,"No se pudo recuperar la ubicación del dispositivo", Toast.LENGTH_LONG);
+                    //CustomToast.showError(context,"No se pudo recuperar la ubicación del dispositivo", Toast.LENGTH_LONG);
                     return;
                 }
 
