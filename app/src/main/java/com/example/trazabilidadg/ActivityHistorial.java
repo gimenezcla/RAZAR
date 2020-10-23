@@ -87,6 +87,9 @@ public class ActivityHistorial extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_historial);
+
+        DB = ((Persistencia)getApplication()).db;
+
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);
@@ -116,6 +119,9 @@ public class ActivityHistorial extends AppCompatActivity {
                 //valores += "Dni: " + fila.getString(1) + "\n";
                 valores += "Nombre: " + fila.getString(2) +" "+ fila.getString(3) + "\n";
                 valores += "Tipo: " + fila.getString(4) ;//+ "\n";
+                /*valores += "nombre: (" + fila.getString(3) +")" ;//+ "\n";
+                valores += "apellido: (" + fila.getString(2) +")";//+ "\n";
+                valores += "dni: (" + fila.getString(1) +")";//+ "\n";*/
                 //valores += "------------------------------------------------E: " + fila.getString(5) ;
                 adapter.add(valores);
 

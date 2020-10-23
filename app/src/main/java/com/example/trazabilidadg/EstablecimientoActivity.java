@@ -36,6 +36,9 @@ public class EstablecimientoActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_comercio);
 
+        final String Cuit = getIntent().getStringExtra("CUIT");
+        final String Telefono_usu = getIntent().getStringExtra("TELEFONO_USU");
+
         //Carga las localidades.
         final Spinner spLocalidad = findViewById(R.id.spLocalidad);
         ArrayList<String> listaLocalidades= MainActivity.persistencia.getLocalidades();
@@ -45,7 +48,7 @@ public class EstablecimientoActivity extends AppCompatActivity {
 
 
         final EditText edCuitDniResponsable = findViewById(R.id.edCuitDniResponsable);
-        edCuitDniResponsable.setText(DocumentoActivity.Cuit);
+        edCuitDniResponsable.setText(Cuit);
         final EditText edNombreEstablecimiento = findViewById(R.id.edNombreEstablecimiento);
         final EditText edNombreResponsable = findViewById(R.id.edNombreResponsable);
         final EditText edDomicilio = findViewById(R.id.edDomicilio);
@@ -56,7 +59,9 @@ public class EstablecimientoActivity extends AppCompatActivity {
 
         //por defecto inicia entradas y salidas.
         EntradasYSalidas.setChecked(true);
-
+        EntradasYSalidas.setVisibility(View.INVISIBLE);
+        Solo_Entradas.setVisibility(View.INVISIBLE);
+        edPermanencia.setVisibility(View.INVISIBLE);
         EntradasYSalidas.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -144,9 +149,9 @@ public class EstablecimientoActivity extends AppCompatActivity {
                             @Override public void onNewLocationAvailable(final SingleShotLocationProvider.GPSCoordinates location) {
 
                                 //Cierra y vuelve a Main.
-                                new AsyncTask<String, Void, String>() {
+                                new AsyncTask<String, Void, Integer>() {
                                     @Override
-                                    protected String doInBackground(final String ... params ) {
+                                    protected Integer doInBackground(final String ... params ) {
                                         // something you know that will take a few seconds
                                         int IdUsuEstab = MainActivity.persistencia.GuardarUsuarioEstablecimiento(
                                                 CuitDniResponsable,
@@ -158,19 +163,27 @@ public class EstablecimientoActivity extends AppCompatActivity {
                                                 RegistraSalidas,
                                                 MainActivity.USUARIO,
                                                 Permanencia,
-                                                DocumentoActivity.Telefono,
+                                                Telefono_usu,
                                                 location.latitude,
                                                 location.longitude);
 
 
-                                        return null;
+                                        return IdUsuEstab;
                                     }
 
                                     @Override
-                                    protected void onPostExecute(String result) {
-                                        progressBar.setVisibility(View.INVISIBLE);
-                                        setResult(SeleccionEstablecimientoActivity.RESULT_OK,new Intent());
-                                        finish();
+                                    protected void onPostExecute(Integer result) {
+
+                                        if(result == null){
+                                            progressBar.setVisibility(View.INVISIBLE);
+                                            CustomToast.showError(EstablecimientoActivity.this
+                                                    , "Ocurrio un error, compruebe su conexión a internet.",Toast.LENGTH_LONG);
+                                        }else
+                                        {
+                                            progressBar.setVisibility(View.INVISIBLE);
+                                            setResult(SeleccionEstablecimientoActivity.RESULT_OK,new Intent());
+                                            finish();
+                                        }
                                     }
 
                                 }.execute();

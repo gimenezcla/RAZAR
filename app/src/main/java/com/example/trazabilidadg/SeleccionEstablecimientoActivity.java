@@ -3,6 +3,7 @@ package com.example.trazabilidadg;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -12,6 +13,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -27,6 +29,8 @@ public class SeleccionEstablecimientoActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_seleccion__establecimiento);
+        final String Cuit = getIntent().getStringExtra("CUIT");
+        final String Telefono_usu = getIntent().getStringExtra("TELEFONO_USU");
 
         progressBar = findViewById(R.id.progressBarSeleccion);
         progressBar.setVisibility(View.VISIBLE);
@@ -38,7 +42,7 @@ public class SeleccionEstablecimientoActivity extends AppCompatActivity {
             @Override
             protected Void doInBackground(final Void ... params ) {
                 // something you know that will take a few seconds
-                Establecimientos = MainActivity.persistencia.getEstablecimientosPorCuit(DocumentoActivity.Cuit);
+                Establecimientos = MainActivity.persistencia.getEstablecimientosPorCuit(Cuit);
 
 
                 h.post(new Runnable() {
@@ -47,14 +51,14 @@ public class SeleccionEstablecimientoActivity extends AppCompatActivity {
                         if( Establecimientos.size() >0 ){
 
                             spinnerEstablecimiento.setAdapter(new ArrayAdapter<String>(
-                                    SeleccionEstablecimientoActivity.this,android.R.layout.simple_spinner_item,
+                                    SeleccionEstablecimientoActivity.this,android.R.layout.simple_spinner_dropdown_item,
                                     (List<String>) new ArrayList<>(Establecimientos.keySet())));
                             progressBar.setVisibility(View.GONE);
                         }else
                         {
-            /*spinnerEstablecimiento.setVisibility(View.INVISIBLE);
-            buttonSeleccionar.setVisibility(View.INVISIBLE);*/
                             Intent intent = new Intent(SeleccionEstablecimientoActivity.this, EstablecimientoActivity.class);
+                            intent.putExtra("CUIT",Cuit);
+                            intent.putExtra("TELEFONO_USU",Telefono_usu);
                             startActivityForResult(intent,12);
                         }
 
@@ -75,34 +79,49 @@ public class SeleccionEstablecimientoActivity extends AppCompatActivity {
         buttonSeleccionar.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //Abre Seleccion establecimiento
-                final String nombreEstablecimiento = spinnerEstablecimiento.getSelectedItem().toString();
-                idEstablecimiento = Establecimientos.get(nombreEstablecimiento);
-                progressBar.setVisibility(View.VISIBLE);
 
-                //Cierra y vuelve a Main.
-                new AsyncTask<Void, Void, Void>() {
-                    @Override
-                    protected Void doInBackground(final Void ... params ) {
-                        // something you know that will take a few seconds
-                        int IdUsuEstab = MainActivity.persistencia.GuardarUsuario(idEstablecimiento,
-                                                nombreEstablecimiento,
-                                                MainActivity.USUARIO,
-                                                DocumentoActivity.Telefono);
+                Object selected = spinnerEstablecimiento.getSelectedItem();
+                if(selected != null)
+                {
+                    //Abre Seleccion establecimiento
+                    final String nombreEstablecimiento = spinnerEstablecimiento.getSelectedItem()!= null ?
+                            spinnerEstablecimiento.getSelectedItem().toString() : "";
+                    idEstablecimiento = Establecimientos.get(nombreEstablecimiento);
+                    progressBar.setVisibility(View.VISIBLE);
 
-                        h.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                progressBar.setVisibility(View.INVISIBLE);
-                                setResult(SeleccionEstablecimientoActivity.RESULT_OK,new Intent());
-                                finish();
-                            }
-                        });
+                    //Cierra y vuelve a Main.
+                    new AsyncTask<Void, Void, Void>() {
+                        @Override
+                        protected Void doInBackground(final Void ... params ) {
+                            // something you know that will take a few seconds
+                            final Integer IdUsuEstab = MainActivity.persistencia.GuardarUsuario(idEstablecimiento,
+                                    nombreEstablecimiento,
+                                    MainActivity.USUARIO,
+                                    Telefono_usu);
 
-                        return null;
-                    }
+                            h.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    if(IdUsuEstab == null){
+                                        progressBar.setVisibility(View.INVISIBLE);
+                                        CustomToast.showError(SeleccionEstablecimientoActivity.this
+                                                , "Ocurrio un error, compruebe su conexión a internet.", Toast.LENGTH_LONG);
+                                    }
+                                    else{
+                                        progressBar.setVisibility(View.INVISIBLE);
+                                        setResult(SeleccionEstablecimientoActivity.RESULT_OK,new Intent());
+                                        finish();
+                                    }
 
-                }.execute();
+                                }
+                            });
+
+                            return null;
+                        }
+
+                    }.execute();
+
+                }
             }
             });
 

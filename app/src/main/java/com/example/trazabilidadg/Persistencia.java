@@ -1,6 +1,7 @@
 package com.example.trazabilidadg;
 
 import android.app.Activity;
+import android.app.Application;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
@@ -21,6 +22,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -47,13 +49,13 @@ import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
 import javax.net.ssl.HttpsURLConnection;
 
-public class Persistencia {
-  public static SQLiteDatabase db;
+public class Persistencia extends Application {
+  public SQLiteDatabase db;
   public final String versionActual = "1.1";
 
   private String UrlServidor;
 
-  public static Integer getIdUsuEstabDBLocal() {
+  public Integer getIdUsuEstabDBLocal() {
     Cursor cursor = db.rawQuery("Select COALESCE(MAX(ID_USU_ESTAB),0) from ESTAB_USUARIO",null);
     cursor.moveToNext();
     return cursor.getInt(0);
@@ -101,7 +103,7 @@ public class Persistencia {
     return aLocalidades;
   }
 
-  public int GuardarUsuario(Integer idEstablecimiento, String nombreEstablecimiento, String usuario, String telefonoUsu) {
+  public Integer GuardarUsuario(Integer idEstablecimiento, String nombreEstablecimiento, String usuario, String telefonoUsu) {
     //Seteo los parametros
     HashMap<String, String> param = new HashMap();
     param.put("ID_ESTABLECIMIENTO", idEstablecimiento.toString());
@@ -119,25 +121,28 @@ public class Persistencia {
       e.printStackTrace();
     }
 
-    Integer IdUsuEstab = Integer.parseInt(retorno.get("P_ID_USU_ESTAB").toString());
-    String registraSalidas = retorno.get("P_REGISTRA_SALIDA").toString() == "SI" ? "1" :"0" ;
+    Integer IdUsuEstab = null;
+
+    if(retorno != null) {
+      IdUsuEstab = Integer.parseInt(retorno.get("P_ID_USU_ESTAB").toString());
+      String registraSalidas = retorno.get("P_REGISTRA_SALIDA").toString() == "SI" ? "1" : "0";
 
 
-        SQLiteStatement consulta = db.compileStatement(
-        " INSERT INTO ESTAB_USUARIO( ID_USU_ESTAB , NOMBRE ," +
-                "REGISTRA_SALIDA, TELEFONO_USU ) values (?, ?, ?, ?)"
-              );
+      SQLiteStatement consulta = db.compileStatement(
+              " INSERT INTO ESTAB_USUARIO( ID_USU_ESTAB , NOMBRE ," +
+                      "REGISTRA_SALIDA, TELEFONO_USU ) values (?, ?, ?, ?)"
+      );
 
-    consulta.bindString(1, IdUsuEstab.toString());
-    consulta.bindString(2, nombreEstablecimiento);
-    consulta.bindString(3, registraSalidas);
-    consulta.bindString(4, telefonoUsu);
+      consulta.bindString(1, IdUsuEstab.toString());
+      consulta.bindString(2, nombreEstablecimiento);
+      consulta.bindString(3, registraSalidas);
+      consulta.bindString(4, telefonoUsu);
 
-    consulta.executeInsert();
+      consulta.executeInsert();
 
-    //Recupera todos los datos del establecimiento.
-    ActualizarDatosLocalEstablecimiento();
-
+      //Recupera todos los datos del establecimiento.
+      ActualizarDatosLocalEstablecimiento();
+    }
     return IdUsuEstab;
   }
 
@@ -170,7 +175,11 @@ public class Persistencia {
     } catch (UnsupportedEncodingException e) {
       e.printStackTrace();
     }
-    Integer IdUsuEstab = Integer.parseInt(retorno.get("P_ID_USU_ESTAB").toString());
+
+    Integer IdUsuEstab = null;
+    if(retorno != null)
+    {
+    IdUsuEstab = Integer.parseInt(retorno.get("P_ID_USU_ESTAB").toString());
 
     SQLiteStatement consulta = db.compileStatement(
             " INSERT INTO ESTAB_USUARIO( ID_USU_ESTAB , NOMBRE , CUIT_DNI , LOCALIDAD , LATITUD , LONGITUD , RESPONSABLE , TELEFONO , " +
@@ -191,14 +200,31 @@ public class Persistencia {
     consulta.bindString(13, "ENTRADA");
 
     consulta.executeInsert();
-    //realiza el post
+
+    }
     return IdUsuEstab;
   }
 
 
 
-  public Persistencia( SQLiteDatabase _db) {
+  /*public Persistencia( SQLiteDatabase _db) {
     db = _db;
+    inicializarTablas();
+    EjecutarActualizacionDeTablas();
+
+    try {
+      UrlServidor = new String(Base64.decode("aHR0cHM6Ly93d3cucHJvZ3JhbWFpbmZvcm1hdGljby5zYW5sdWlzLmdvYi5hci9vcmRzL3NhbHVkL1RyYXphYmlsaWRhZA=="
+              ,Base64.DEFAULT),"UTF-8") + "Test";
+    } catch (UnsupportedEncodingException e) {
+      e.printStackTrace();
+    }
+  }*/
+
+  @Override
+  public void onCreate() {
+    super.onCreate();
+
+    db = openOrCreateDatabase("GermanDB", Context.MODE_PRIVATE, null);;
     inicializarTablas();
     EjecutarActualizacionDeTablas();
 
@@ -215,6 +241,17 @@ public class Persistencia {
       db.execSQL("ALTER TABLE ESTAB_USUARIO ADD COLUMN TIPO_MOVIMIENTO_ACTUAL VARCHAR DEFAULT 'ENTRADA'");
     } catch (SQLiteException ex) {
       Log.w("UPDATE", "Altering : ESTAB_USUARIO " + ex.getMessage());
+    }
+
+    try {
+
+      SQLiteStatement consulta = db.compileStatement(
+              " UPDATE LOCALIDADES set LOCALIDAD = 'SAN JERONIMO' where LOCALIDAD = 'SAN GERONIMO'"
+      );
+
+      consulta.executeUpdateDelete();
+    }catch (Exception e){
+      Log.w("UPDATE", "Localidades " + e.getMessage());
     }
 
   }
@@ -310,7 +347,15 @@ public class Persistencia {
 
 
   public void EnviarVisitasMasivasPendientes() {
-    Cursor fila = db.rawQuery("SELECT *  FROM QRs where enviado = 0 ORDER BY id_registro", null);
+
+    Cursor fila = db.rawQuery("SELECT *  FROM QRs " +
+                    " where ENVIADO = 0 " +
+                    " and ifnull(NOMBRES,'') != '' " +
+                    " and ifnull(APELLIDO,'') != '' " +
+                    " and ifnull(DNI,'') != '' " +
+                    " and ifnull(ID_USU_ESTAB,'') != '' " +
+                    " ORDER BY ID_REGISTRO", null);
+
     String ultimoId = "";
     String CSV = "";
     DateFormat formatterServer = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
@@ -354,7 +399,13 @@ public class Persistencia {
                 , param)!= null) //"/setVisitas/"
         {
           SQLiteStatement consulta = db.compileStatement(
-                  " UPDATE QRs set enviado = 1 where enviado=0 and id_registro <= ? "
+                  " UPDATE QRs set ENVIADO = 1 " +
+                          " where ENVIADO = 0 " +
+                          " and ifnull(NOMBRES,'') != '' " +
+                          " and ifnull(APELLIDO,'') != '' " +
+                          " and ifnull(DNI,'') != '' " +
+                          " and ifnull(ID_USU_ESTAB,'') != '' " +
+                          " and ID_REGISTRO <= ? "
           );
           consulta.bindString(1, ultimoId);
 
@@ -406,8 +457,8 @@ public class Persistencia {
             "        DOMICILIO VARCHAR," +
             "        REGISTRA_SALIDA VARCHAR," +
             "        TIEMPO_PERMANENCIA VARCHAR," +
-            "        enviado BOOLEAN," +
-            "        TIPO_MOVIMIENTO_ACTUAL VARCHAR DEFAULT 'ENTRADA' "+
+            "        enviado BOOLEAN" +
+           // "        ,TIPO_MOVIMIENTO_ACTUAL VARCHAR DEFAULT 'ENTRADA' "+
             ")");
     db.execSQL("CREATE TABLE IF NOT EXISTS VERSION(" +
             "        N_VERSION VARCHAR," +
@@ -562,7 +613,7 @@ public class Persistencia {
       db.execSQL("INSERT into LOCALIDADES VALUES (\"SAN ANTONIO\",\"BELGRANO\");");
       db.execSQL("INSERT into LOCALIDADES VALUES (\"SAN FELIPE\",\"CHACABUCO\");");
       db.execSQL("INSERT into LOCALIDADES VALUES (\"SAN FRANCISCO DEL MONTE DE ORO\",\"AYACUCHO\");");
-      db.execSQL("INSERT into LOCALIDADES VALUES (\"SAN GERONIMO\",\"PUEYRREDON\");");
+      db.execSQL("INSERT into LOCALIDADES VALUES (\"SAN JERONIMO\",\"PUEYRREDON\");");
       db.execSQL("INSERT into LOCALIDADES VALUES (\"SAN JOSE DEL MORRO\",\"PEDERNERA\");");
       db.execSQL("INSERT into LOCALIDADES VALUES (\"SAN LUIS\",\"PUEYRREDON\");");
       db.execSQL("INSERT into LOCALIDADES VALUES (\"SAN MARTIN\",\"SAN MARTIN\");");
@@ -892,20 +943,20 @@ public class Persistencia {
 
   public Integer getCantidadDiasPendientes(){
     try {
-    Cursor cursor = db.rawQuery("Select MIN(FECHA) from QRs where enviado = 0 ",null);
-    cursor.moveToNext();
+      Cursor cursor = db.rawQuery("Select MIN(FECHA) from QRs where enviado = 0 ",null);
 
-    DateFormat formatterServer = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
-    formatterServer.setTimeZone(TimeZone.getTimeZone("UTC−03:00"));
-    Date pFecha = formatterServer.parse(cursor.getString(0));
-    long diffInMillies = Math.abs(new Date().getTime() - pFecha.getTime());
-    Long diff = TimeUnit.DAYS.convert(diffInMillies, TimeUnit.MILLISECONDS);
+      if(cursor.moveToNext()){
+        DateFormat formatterServer = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+        formatterServer.setTimeZone(TimeZone.getTimeZone("UTC−03:00"));
+        Date pFecha = formatterServer.parse(cursor.getString(0));
+        long diffInMillies = Math.abs(new Date().getTime() - pFecha.getTime());
+        Long diff = TimeUnit.DAYS.convert(diffInMillies, TimeUnit.MILLISECONDS);
 
-    return diff != null ? diff.intValue() : 0;
-
-
+        return diff != null ? diff.intValue() : 0;
+      }
     } catch (Exception e) {
-      e.printStackTrace();
+      //e.printStackTrace();
+      return 0;
     }
     return 0;
   }

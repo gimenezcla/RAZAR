@@ -15,10 +15,12 @@ public class AlarmEnviadorReceiver extends BroadcastReceiver {
         new AsyncTask<Void, Void, Void>() {
             @Override
             protected Void doInBackground(final Void ... params ) {
-                SQLiteDatabase db = context.openOrCreateDatabase("GermanDB", Context.MODE_PRIVATE, null);
-                Persistencia persistencia = new Persistencia(db);
-                persistencia.EnviarVisitasMasivasPendientes();
+                /*SQLiteDatabase db = context.openOrCreateDatabase("GermanDB", Context.MODE_PRIVATE, null);
+                Persistencia persistencia = new Persistencia(db);*/
 
+                Persistencia persistencia = ((Persistencia) context.getApplicationContext());
+
+                persistencia.EnviarVisitasMasivasPendientes();
                 persistencia.ActualizarDatosLocalEstablecimiento();
 
                 return null;

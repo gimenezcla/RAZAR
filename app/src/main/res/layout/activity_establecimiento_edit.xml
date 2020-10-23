@@ -72,7 +72,6 @@ android:fillViewport="true"> <!--IMPORTANT otherwise backgrnd img. will not fill
         app:layout_constraintTop_toBottomOf="@+id/edTelefonoEstab" />
 
 
-
     <EditText
         android:id="@+id/edPermanencia"
         android:layout_width="0dp"
@@ -80,10 +79,10 @@ android:fillViewport="true"> <!--IMPORTANT otherwise backgrnd img. will not fill
         android:layout_marginTop="8dp"
         android:hint="@string/comercio_permanencia"
         android:inputType="number"
-        app:layout_constraintEnd_toEndOf="@+id/edTelefono"
+        app:layout_constraintEnd_toEndOf="@+id/rbEntradaSalida"
         app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="@+id/edTelefono"
-        app:layout_constraintTop_toBottomOf="@+id/edTelefono" />
+        app:layout_constraintStart_toStartOf="@+id/rbEntradaSalida"
+        app:layout_constraintTop_toBottomOf="@+id/rbEntradaSalida" />
 
     <RadioGroup
         android:id="@+id/rbEntradaSalida"
@@ -92,10 +91,10 @@ android:fillViewport="true"> <!--IMPORTANT otherwise backgrnd img. will not fill
         android:layout_marginTop="8dp"
         android:orientation="vertical"
         android:visibility="visible"
-        app:layout_constraintEnd_toEndOf="@+id/edNombreResponsable"
+        app:layout_constraintEnd_toEndOf="@+id/edTelefono"
         app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="@+id/edNombreResponsable"
-        app:layout_constraintTop_toBottomOf="@+id/edNombreResponsable">
+        app:layout_constraintStart_toStartOf="@+id/edTelefono"
+        app:layout_constraintTop_toBottomOf="@+id/edTelefono">
 
         <RadioButton
             android:id="@+id/Solo_Entradas"
@@ -119,10 +118,10 @@ android:fillViewport="true"> <!--IMPORTANT otherwise backgrnd img. will not fill
         android:layout_marginTop="8dp"
         android:hint="@string/comercio_telefono"
         android:inputType="phone"
-        app:layout_constraintEnd_toEndOf="@+id/rbEntradaSalida"
+        app:layout_constraintEnd_toEndOf="@+id/edNombreResponsable"
         app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="@+id/rbEntradaSalida"
-        app:layout_constraintTop_toBottomOf="@+id/rbEntradaSalida" />
+        app:layout_constraintStart_toStartOf="@+id/edNombreResponsable"
+        app:layout_constraintTop_toBottomOf="@+id/edNombreResponsable" />
 
     <Button
         android:id="@+id/btnGuardar"
@@ -154,8 +153,9 @@ android:fillViewport="true"> <!--IMPORTANT otherwise backgrnd img. will not fill
         android:visibility="invisible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.497"
+        app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.0" />
 </androidx.constraintlayout.widget.ConstraintLayout>
 </ScrollView>

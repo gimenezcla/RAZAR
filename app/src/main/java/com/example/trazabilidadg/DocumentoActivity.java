@@ -57,6 +57,8 @@ public class DocumentoActivity extends AppCompatActivity {
 
                 //Abre la seleccion de establecimiento
                 Intent intent = new Intent( DocumentoActivity.this, SeleccionEstablecimientoActivity.class);
+                intent.putExtra("CUIT", Cuit);
+                intent.putExtra("TELEFONO_USU", Telefono);
                 startActivityForResult(intent, 11);
 
             }

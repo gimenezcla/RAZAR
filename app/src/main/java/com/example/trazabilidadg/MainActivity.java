@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import android.Manifest;
 import android.accounts.AccountManager;
 import android.app.AlarmManager;
 import android.app.AlertDialog;
@@ -13,9 +14,11 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.content.res.ColorStateList;
 import android.database.sqlite.SQLiteDatabase;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
@@ -122,15 +125,20 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     }
 
     private void ActualizarUI() {
-        String titulo = "Registro de Entradas";
+        String titulo = "Registro de ENTRADAS";
+        ((TextView)findViewById(R.id.titulo)).setTextColor(Color.rgb(7, 32, 173 ));
         Establecimiento establecimiento = persistencia.getEstablecimientoLocal();
 
         if(establecimiento != null )
             if(establecimiento.TipoMovimientoActual != null && establecimiento.TipoMovimientoActual.equals("SALIDA")){
-                titulo = "Registro de Salidas";
+                titulo = "Registro de SALIDAS";
                 findViewById(R.id.txtTelefono).setVisibility(View.GONE);
+                ((TextView)findViewById(R.id.titulo)).setTextColor(Color.rgb(15, 127, 31));
             }else
+            {
                 findViewById(R.id.txtTelefono).setVisibility(View.VISIBLE);
+                ((TextView)findViewById(R.id.titulo)).setTextColor(Color.rgb(7, 32, 173 ));
+            }
 
         ((TextView)findViewById(R.id.titulo)).setText(titulo);
     }
@@ -153,17 +161,8 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             lblUsuario = findViewById(R.id.lblUsuario);
 
             showSettingAlert();
-            // creando/abriendo el archivo que va a contener la base de datos
-            db = openOrCreateDatabase("GermanDB", Context.MODE_PRIVATE, null);
 
-            // db.execSQL("DROP TABLE QRs"); // Descomentar cuando se quiera vaciar la Base de Datos
-            persistencia = new Persistencia(db);
-            // si no ha sido previamente creada, creo la tabla "QR" con columnas "timestamp", "qr", "telefono" y "descripcion".
-            //   db.execSQL("DROP TABLE IF EXISTS QRs");
-
-           //Log.e("XOR",persistencia.encode("hola","chau"));
-            // le paso a la Activida con el list view la referencia al objeto con la conexión a la base de datos
-            ActivityHistorial.DB = db;
+            persistencia = ((Persistencia)getApplication());
 
             //Inicializa como escaneo.
             txtDNI.setEnabled(false);
@@ -213,10 +212,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             btnVer.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    /*if (checkPermission(WRITE_EXTERNAL_STORAGE, 101)) {
-                        Intent intent = new Intent(MainActivity.this, ActivityHistorial.class);
-                        startActivity(intent);
-                    }*/
                     Intent intent = new Intent(MainActivity.this, ActivityHistorial.class);
                     startActivity(intent);
                 }
@@ -236,20 +231,9 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             });
 
             //getLocationShot();
-            getLocation();
+            //getLocation();
 
-            if (USUARIO.isEmpty())
-            {
-                //Abre ventana de login GMAIL.
-                /*Intent intent = AccountPicker.newChooseAccountIntent(null, null,
-                        new String[]{GoogleAuthUtil.GOOGLE_ACCOUNT_TYPE}, false, null, null, null, null);*/
-                Intent intent =
-                        AccountPicker.newChooseAccountIntent(
-                                new AccountPicker.AccountChooserOptions.Builder()
-                                        .setAllowableAccountsTypes(Arrays.asList("com.google"))
-                                        .build());
-                startActivityForResult(intent, 0x0000c0dc);
-            }
+
 
             //inicia tarea background de envio masivo movimientos.
             if(!EncendioTarea){
@@ -261,13 +245,39 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 EncendioTarea = true;
             }
 
-            persistencia.Eliminar30Dias();
 
-            CheckDatosPendientes();
+        idUsuEstab = persistencia.getIdUsuEstabDBLocal();
+        if(idUsuEstab == 0) {
+            //Inicia proceso de registración
+            findViewById(R.id.progressBarMain).setVisibility(View.VISIBLE);
+            Intent documento = new Intent(MainActivity.this, DocumentoActivity.class);
+            startActivityForResult(documento, 0x0000c0dd);
+        }
 
-            CheckVersion();
-            ActualizarUI();
 
+        checkPermission(ACCESS_FINE_LOCATION, 1);
+        checkPermission(ACCESS_COARSE_LOCATION, 1);
+
+        //SolicitarEmail();
+        CheckVersion();
+        CheckDatosPendientes();
+        ActualizarUI();
+        persistencia.Eliminar30Dias();
+    }
+
+    private void SolicitarEmail() {
+        if (persistencia.getEstablecimientoLocal() == null)
+        {
+            //Abre ventana de login GMAIL.
+                /*Intent intent = AccountPicker.newChooseAccountIntent(null, null,
+                        new String[]{GoogleAuthUtil.GOOGLE_ACCOUNT_TYPE}, false, null, null, null, null);*/
+            Intent intent =
+                    AccountPicker.newChooseAccountIntent(
+                            new AccountPicker.AccountChooserOptions.Builder()
+                                    .setAllowableAccountsTypes(Arrays.asList("com.google"))
+                                    .build());
+            startActivityForResult(intent, 0x0000c0dc);
+        }
     }
 
     public void CheckDatosPendientes(){
@@ -442,43 +452,71 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     }
 
     public void guardarEnBaseDeDatos() {
-        if (txtDNI.getText().toString().replaceAll("[^0-9]+","").isEmpty()) {
+
+        final String _dni = txtDNI.getText().toString().replaceAll("[^0-9]+","").trim();
+        final String _ape = txtApellido.getText().toString();
+        final String _nom = txtNombres.getText().toString();
+        final String _gen = Genero;
+        final String _tel = txtTelefono.getText().toString().replaceAll("[^0-9]+","").trim();
+
+        if (_dni.isEmpty()) {
             CustomToast.showError(this,
                     "Debe ingresar el Dni.",
                     Toast.LENGTH_SHORT);
             return;
         }
-        if (txtApellido.getText().toString().isEmpty()) {
+        if (_dni.length() < 6
+            || _dni.length() > 8 ) {
+            CustomToast.showError(this,
+                    "El Dni ingresado es inválido.",
+                    Toast.LENGTH_SHORT);
+            return;
+        }
+
+        if (_ape.isEmpty() ) {
             CustomToast.showError(this,
                     "Debe ingresar el Apellido",
                     Toast.LENGTH_SHORT);
             return;
         }
-        if (txtNombres.getText().toString().isEmpty()) {
+        if (_ape.length() < 2 || _ape.length() > 50) {
+            CustomToast.showError(this,
+                    "El Apellido ingresado es inválido",
+                    Toast.LENGTH_SHORT);
+            return;
+        }
+
+        if (_nom.isEmpty()) {
             CustomToast.showError(this,
                     "Debe ingresar el Nombre",
                     Toast.LENGTH_SHORT);
             return;
         }
-
-        if (txtTelefono.getText().toString().length()>10) {
+        if (_nom.length() < 2 || _nom.length() > 50) {
             CustomToast.showError(this,
-                    "El Teléfono no puede superar los 10 digitos",
+                    "El Nombre ingresado es inválido",
                     Toast.LENGTH_SHORT);
             return;
         }
 
-        if (txtTelefono.getText().toString().replaceAll("[^0-9]+","").isEmpty()
-                && txtTelefono.getVisibility() == View.VISIBLE ) {
+        if (_tel.isEmpty() && txtTelefono.getVisibility() == View.VISIBLE ) {
             CustomToast.showError(this,
                     "Debe ingresar el Teléfono",
                     Toast.LENGTH_SHORT);
             return;
         }
 
+        if ((_tel.length()>10 || _tel.length() <= 5) & txtTelefono.getVisibility() == View.VISIBLE) {
+            CustomToast.showError(this,
+                    "El Teléfono ingresado es inválido",
+                    Toast.LENGTH_SHORT);
+            return;
+        }
+
+
         final Establecimiento establecimientoLocal = persistencia.getEstablecimientoLocal();
         idUsuEstab = establecimientoLocal.IdUsuEstab;
-        if(idUsuEstab> 0)
+        if(idUsuEstab > 0)
         {
             findViewById(R.id.progressBarMain).setVisibility(View.VISIBLE);
             SingleShotLocationProvider.requestSingleUpdate(MainActivity.this,
@@ -486,27 +524,32 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                         @Override
                         public void onNewLocationAvailable(SingleShotLocationProvider.GPSCoordinates location) {
 
-                            if(location!= null && location.latitude!=0)
+                            if(location != null && location.latitude != 0)
                             {
-                                persistencia.GuardarVisita( txtDNI.getText().toString().replaceAll("[^0-9]+","").trim(),
-                                        txtApellido.getText().toString(),
-                                        txtNombres.getText().toString(),
-                                        Genero,
-                                        txtTelefono.getText().toString().replaceAll("[^0-9]+","").trim(),
-                                        String.valueOf(latitude),//location.latitude),
-                                        String.valueOf(longitude),//location.longitude),
+                                persistencia.GuardarVisita( _dni,
+                                        _ape,
+                                        _nom,
+                                        _gen,
+                                        _tel,
+                                        String.valueOf(location.latitude),//location.latitude),
+                                        String.valueOf(location.longitude),//location.longitude),
                                         txtDescripcion.getText().toString(),
-                                        idUsuEstab,
+                                        establecimientoLocal.IdUsuEstab,
                                         establecimientoLocal.TipoMovimientoActual);
 
-                                CustomToast.showSuccess(MainActivity.this, "Visita registrada con éxito", Toast.LENGTH_SHORT);
+                                if(establecimientoLocal.TipoMovimientoActual.equals("SALIDA"))
+                                    CustomToast.showSuccess(MainActivity.this,
+                                            "SALIDA registrada con éxito", Toast.LENGTH_SHORT);
+                                else
+                                    CustomToast.showSuccess(MainActivity.this,
+                                            "ENTRADA registrada con éxito", Toast.LENGTH_SHORT);
 
-                                VaciarCampos();
-                                if(Genero.isEmpty())
+                                if(_gen.isEmpty())
                                 {
                                     txtDNI.setFocusableInTouchMode(true);
                                     txtDNI.requestFocus();
                                 }
+                                VaciarCampos();
                             }else
                             {
                                 CustomToast.showError(MainActivity.this,
@@ -524,16 +567,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     }
 
     public void escanear() {
-        /*IntentIntegrator intent = new IntentIntegrator( this);
-         intent.setDesiredBarcodeFormats(IntentIntegrator.ALL_CODE_TYPES);
-        //intent.setDesiredBarcodeFormats(IntentIntegrator.QR_CODE_TYPES);
-        intent.setOrientationLocked(true);
-        intent.setPrompt("ESCANEAR CODIGO");
-        intent.setCameraId(0);
-        intent.setBeepEnabled(false);
-        intent.setBarcodeImageEnabled(false);
-
-        intent.initiateScan();*/
 
 
         IntentIntegrator intent = new IntentIntegrator( this);
@@ -581,16 +614,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 longitude = location.getLongitude();
             }
 
-                // Toast.makeText(MainActivity.this, "latitude:" + latitude + " longitude:" + longitude, Toast.LENGTH_SHORT).show();
-/*
-            } else {
-                Log.d("PEPE", "requestLocationUpdates");
-                //This is what you need:
-                //locationManager.requestLocationUpdates(bestProvider, 1000, 0, this);
-                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
-                locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, this);
-            }
-*/
 
         }
     }
@@ -598,13 +621,13 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     @Override
     protected void onPause() {
         super.onPause();
-        locationManager.removeUpdates(this);
+        //locationManager.removeUpdates(this);
     }
 
     @Override
     public void onLocationChanged(Location location) {
         //remove location callback:
-        locationManager.removeUpdates(this);
+        //locationManager.removeUpdates(this);
 
         //open the map:
         latitude = location.getLatitude();
@@ -627,6 +650,38 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
     }
 
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if (requestCode == 1) {
+
+            for (int i = 0; i < permissions.length; i++) {
+                String permission = permissions[i];
+                int grantResult = grantResults[i];
+
+                if (permission.equals(ACCESS_COARSE_LOCATION) || permission.equals(ACCESS_FINE_LOCATION) ) {
+                    if (grantResult != PackageManager.PERMISSION_GRANTED)
+                        finish();
+                    /*    {
+
+                        idUsuEstab = Persistencia.getIdUsuEstabDBLocal();
+                        if(idUsuEstab == 0) {
+                            //Inicia proceso de registración
+                            findViewById(R.id.progressBarMain).setVisibility(View.VISIBLE);
+                            Intent documento = new Intent(MainActivity.this, DocumentoActivity.class);
+                            startActivityForResult(documento, 0x0000c0dd);
+                        }
+                    }else
+                        finish();*/
+                }
+
+            }
+        }
+    }
+
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         IntentResult result = IntentIntegrator.parseActivityResult(requestCode, resultCode, data);
@@ -634,13 +689,13 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         //Si cerro el registro inicial
         if(requestCode == 0x0000c0dd) {
             if( resultCode == RESULT_OK){
-                idUsuEstab = Persistencia.getIdUsuEstabDBLocal();
+                idUsuEstab = persistencia.getIdUsuEstabDBLocal();
                 getLocationShot();
                 supportInvalidateOptionsMenu();
                 findViewById(R.id.progressBarMain).setVisibility(View.GONE);
             }else
             {
-                idUsuEstab = Persistencia.getIdUsuEstabDBLocal();
+                idUsuEstab = persistencia.getIdUsuEstabDBLocal();
                 if(idUsuEstab == 0) {
                     //Inicia proceso de registración
                     Intent documento = new Intent(MainActivity.this, DocumentoActivity.class);
@@ -656,18 +711,9 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
             if( resultCode == RESULT_OK){
                 USUARIO = data.getStringExtra(AccountManager.KEY_ACCOUNT_NAME);
-                lblUsuario.setText("Usuario: " + USUARIO);
-                //Toast.makeText(MainActivity.this, lblUsuario.getText(), Toast.LENGTH_SHORT).show();
 
-                //Abre Activity Documento
-                //si el Establecimiento no existe... abre..
-                idUsuEstab = Persistencia.getIdUsuEstabDBLocal();
-                if(idUsuEstab == 0) {
-                    //Inicia proceso de registración
-                    findViewById(R.id.progressBarMain).setVisibility(View.VISIBLE);
-                    Intent documento = new Intent(MainActivity.this, DocumentoActivity.class);
-                    startActivityForResult(documento, 0x0000c0dd);
-                }
+                checkPermission(ACCESS_FINE_LOCATION, 1);
+                checkPermission(ACCESS_COARSE_LOCATION, 1);
 
             }else
                 finish();

@@ -70,6 +70,7 @@ public class EstablecimientoEdit extends AppCompatActivity {
         Solo_Entradas.setChecked(false);
 
         if(establecimiento == null) finish();
+        if(establecimiento.NombreEstablecimiento == null) finish();
 
         ArrayList<String> listaLocalidades = MainActivity.persistencia.getLocalidades();
         listaLocalidades.add(0,"Seleccione una Localidad...");
