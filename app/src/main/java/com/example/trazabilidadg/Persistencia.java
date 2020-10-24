@@ -207,19 +207,6 @@ public class Persistencia extends Application {
 
 
 
-  /*public Persistencia( SQLiteDatabase _db) {
-    db = _db;
-    inicializarTablas();
-    EjecutarActualizacionDeTablas();
-
-    try {
-      UrlServidor = new String(Base64.decode("aHR0cHM6Ly93d3cucHJvZ3JhbWFpbmZvcm1hdGljby5zYW5sdWlzLmdvYi5hci9vcmRzL3NhbHVkL1RyYXphYmlsaWRhZA=="
-              ,Base64.DEFAULT),"UTF-8") + "Test";
-    } catch (UnsupportedEncodingException e) {
-      e.printStackTrace();
-    }
-  }*/
-
   @Override
   public void onCreate() {
     super.onCreate();
@@ -245,22 +232,42 @@ public class Persistencia extends Application {
     }
 
     try {
-
       SQLiteStatement consulta = db.compileStatement(
               " UPDATE LOCALIDADES set LOCALIDAD = 'SAN JERONIMO' where LOCALIDAD = 'SAN GERONIMO'"
       );
-
       consulta.executeUpdateDelete();
     }catch (Exception e){
       Log.w("UPDATE", "Localidades " + e.getMessage());
     }
 
+    try {
+      db.execSQL("ALTER TABLE ESTAB_USUARIO ADD COLUMN ULTIMA_SINCRONIZACION TIMESTAMP");
+    } catch (SQLiteException ex) {
+      Log.w("UPDATE", "Altering : ESTAB_USUARIO " + ex.getMessage());
+    }
   }
 
-  public void agregarComercio(String Cuit, String Nombre, String Domicilio, String Telefono,
-                              String Localidad, String Latitud, String Longitud,String Tipo, String Usuario)
-  {
+  public String getUltimaSincronizacion() {
+    Cursor fila = db.rawQuery("SELECT max(ULTIMA_SINCRONIZACION) FROM ESTAB_USUARIO ", null);
 
+    DateFormat formatterServer = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+    formatterServer.setTimeZone(TimeZone.getTimeZone("UTC−03:00"));
+    DateFormat formatterClient = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault());;
+
+    while(fila.moveToNext()) {
+      Date date = null;
+      try {
+        if(fila.getString(0) == null || fila.getString(0).isEmpty())
+          return "";
+
+        date = (Date) formatterServer.parse(fila.getString(0));
+        return formatterClient.format(date);
+
+      } catch (ParseException e) {
+        e.printStackTrace();
+      }
+    }
+    return "";
   }
 
   public void GuardarVisita(String Dni, String Apellido, String Nombres, String Genero, String Telefono, String Latitud,
@@ -372,17 +379,17 @@ public class Persistencia extends Application {
       } catch (ParseException e) {
         e.printStackTrace();
       }
-      CSV += formatterClient.format(date)+ ";"; //  fila.getString(1)
-      CSV += fila.getString(2) + ";";
-      CSV += fila.getString(3) + ";";
-      CSV += fila.getString(4) + ";";
-      CSV += fila.getString(5) + ";";
-      CSV += fila.getString(6) + ";";
-      CSV += fila.getString(7) + ";";
-      CSV += fila.getString(8) + ";";
-      CSV += fila.getString(9) + ";";
-      CSV += fila.getString(10) + ";";
-      CSV += fila.getString(11) + "#";
+      CSV += limpiarString(formatterClient.format(date)) + ";"; //  fila.getString(1)
+      CSV += limpiarString(fila.getString(2)) + ";";
+      CSV += limpiarString(fila.getString(3)) + ";";
+      CSV += limpiarString(fila.getString(4)) + ";";
+      CSV += limpiarString(fila.getString(5)) + ";";
+      CSV += limpiarString(fila.getString(6)) + ";";
+      CSV += limpiarString(fila.getString(7)) + ";";
+      CSV += limpiarString(fila.getString(8)) + ";";
+      CSV += limpiarString(fila.getString(9)) + ";";
+      CSV += limpiarString(fila.getString(10)) + ";";
+      CSV += limpiarString(fila.getString(11)) + "#";
     }
 
     if(fila.getCount()>0) {
@@ -409,14 +416,27 @@ public class Persistencia extends Application {
                           " and ID_REGISTRO <= ? "
           );
           consulta.bindString(1, ultimoId);
-
           consulta.executeUpdateDelete();
+
+          //Actualiza ultima fecha de sincronizacion.
+          consulta = db.compileStatement(
+                  "UPDATE ESTAB_USUARIO set ULTIMA_SINCRONIZACION = CURRENT_TIMESTAMP"
+          );
+          consulta.executeUpdateDelete();
+
         }
       } catch (UnsupportedEncodingException e) {
         e.printStackTrace();
       }
     }
 
+  }
+
+  private String limpiarString(String cadena) {
+    return cadena
+            .replace(";","")
+            .replace("&","")
+            .replace("#","");
   }
 
   private void inicializarTablas() {
@@ -437,10 +457,7 @@ public class Persistencia extends Application {
                     "enviado BOOLEAN" +
                     ")"
     );
-/*
-    db.execSQL(
-            "DELETE from QRs where NOMBRES = 'LUIS' " );
-*/
+
 
 //    db.execSQL("DROP TABLE ESTAB_USUARIO");
     db.execSQL("CREATE TABLE IF NOT EXISTS ESTAB_USUARIO(" +

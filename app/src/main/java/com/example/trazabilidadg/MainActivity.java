@@ -174,6 +174,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 public void onClick(View v) {
                     VaciarCampos();
                     escanear();
+                    setUltimaSincronizacion();
 
                     txtDNI.setEnabled(false);
                     txtApellido.setEnabled(false);
@@ -188,6 +189,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 public void onClick(View v) {
                     // vaciamos los  campos de texto
                     VaciarCampos();
+                    setUltimaSincronizacion();
 
                     txtDNI.setEnabled(true);
                     txtApellido.setEnabled(true);
@@ -204,6 +206,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             btnGuardar.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+                    setUltimaSincronizacion();
                     guardarEnBaseDeDatos();
                     getLocationShot();
                 }
@@ -212,6 +215,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             btnVer.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+                    setUltimaSincronizacion();
                     Intent intent = new Intent(MainActivity.this, ActivityHistorial.class);
                     startActivity(intent);
                 }
@@ -229,10 +233,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                         }
                 }
             });
-
-            //getLocationShot();
-            //getLocation();
-
 
 
             //inicia tarea background de envio masivo movimientos.
@@ -263,6 +263,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         CheckDatosPendientes();
         ActualizarUI();
         persistencia.Eliminar30Dias();
+        setUltimaSincronizacion();
     }
 
     private void SolicitarEmail() {
@@ -438,6 +439,15 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         txtNombres.setText("");
         txtTelefono.setText("");
         txtDescripcion.setText("");
+    }
+
+    private void setUltimaSincronizacion() {
+        String fecha = persistencia.getUltimaSincronizacion();
+
+        if(!fecha.isEmpty()) {
+            TextView ultSinc = findViewById(R.id.ultSincronizacion);
+            ultSinc.setText("Última Sincronización con Sistema Central de Trazabilidad Digital de Salud: " + fecha);
+        }
     }
 
     public boolean checkPermission(String permission, int requestCode) {
