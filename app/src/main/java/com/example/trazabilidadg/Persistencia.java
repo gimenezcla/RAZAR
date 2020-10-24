@@ -70,9 +70,9 @@ public class Persistencia extends Application {
     Map<String,Object> retorno = null;
     try {
       retorno = Post(UrlServidor+
-                      new String(Base64.decode("L2dldEVzdGFiUG9yQ3VpdC8="
+                      new String(Base64.decode("L0dQU0xfZ2V0RXN0YWJQb3JDdWl0Lw=="
               ,Base64.DEFAULT),"UTF-8")
-              ,param);//"/getEstabPorCuit/"
+              ,param);//"/GPSL_getEstabPorCuit/"
 
       LinkedHashMap<String, Integer> Establecimientos = new LinkedHashMap<>();
 
@@ -114,9 +114,9 @@ public class Persistencia extends Application {
             null;
     try {
       retorno = Post(UrlServidor+
-                      new String(Base64.decode("L3NldFVzdWFyaW8v"
+                      new String(Base64.decode("L0dQU0xfc2V0VXN1YXJpby8="
                               ,Base64.DEFAULT),"UTF-8")
-              ,param);//"/setUsuario/"
+              ,param);//"/GPSL_setUsuario/"
     } catch (UnsupportedEncodingException e) {
       e.printStackTrace();
     }
@@ -169,9 +169,9 @@ public class Persistencia extends Application {
     Map<String,Object> retorno = null;
     try {
       retorno = Post(UrlServidor+
-                      new String(Base64.decode("L3NldFVzdUVzdGFiLw=="
+                      new String(Base64.decode("L0dQU0xfc2V0VXN1RXN0YWIv"
                               ,Base64.DEFAULT),"UTF-8")
-              ,param); //"/setUsuEstab/"
+              ,param); //"/GPSL_setUsuEstab/"
     } catch (UnsupportedEncodingException e) {
       e.printStackTrace();
     }
@@ -229,7 +229,8 @@ public class Persistencia extends Application {
     EjecutarActualizacionDeTablas();
 
     try {
-      UrlServidor = new String(Base64.decode("aHR0cHM6Ly93d3cucHJvZ3JhbWFpbmZvcm1hdGljby5zYW5sdWlzLmdvYi5hci9vcmRzL3NhbHVkL1RyYXphYmlsaWRhZA=="
+      //https://www.programainformatico.sanluis.gob.ar/ords/salud/GPSL_Trazabilidad
+      UrlServidor = new String(Base64.decode("aHR0cHM6Ly93d3cucHJvZ3JhbWFpbmZvcm1hdGljby5zYW5sdWlzLmdvYi5hci9vcmRzL3NhbHVkL0dQU0xfVHJhemFiaWxpZGFk"
               ,Base64.DEFAULT),"UTF-8") + "Test";
     } catch (UnsupportedEncodingException e) {
       e.printStackTrace();
@@ -314,7 +315,7 @@ public class Persistencia extends Application {
         String responseLine = null;
         while ((responseLine = br.readLine()) != null) {
           response.append(responseLine.trim());}
-
+        Log.e("RESp POST","");
         if(!response.toString().isEmpty())
         {
           Log.e("RESp POST",response.toString());
@@ -350,10 +351,10 @@ public class Persistencia extends Application {
 
     Cursor fila = db.rawQuery("SELECT *  FROM QRs " +
                     " where ENVIADO = 0 " +
-                    " and ifnull(NOMBRES,'') != '' " +
+                    /*" and ifnull(NOMBRES,'') != '' " +
                     " and ifnull(APELLIDO,'') != '' " +
                     " and ifnull(DNI,'') != '' " +
-                    " and ifnull(ID_USU_ESTAB,'') != '' " +
+                    " and ifnull(ID_USU_ESTAB,'') != '' " +*/
                     " ORDER BY ID_REGISTRO", null);
 
     String ultimoId = "";
@@ -394,17 +395,17 @@ public class Persistencia extends Application {
 
       try {
         if(Post(UrlServidor +
-                        new String(Base64.decode("L3NldFZpc2l0YXMv"
+                        new String(Base64.decode("L0dQU0xfc2V0VmlzaXRhcy8="
                                 ,Base64.DEFAULT),"UTF-8")
-                , param)!= null) //"/setVisitas/"
+                , param)!= null) //"/GPSL_setVisitas/"
         {
           SQLiteStatement consulta = db.compileStatement(
                   " UPDATE QRs set ENVIADO = 1 " +
                           " where ENVIADO = 0 " +
-                          " and ifnull(NOMBRES,'') != '' " +
+                          /*" and ifnull(NOMBRES,'') != '' " +
                           " and ifnull(APELLIDO,'') != '' " +
                           " and ifnull(DNI,'') != '' " +
-                          " and ifnull(ID_USU_ESTAB,'') != '' " +
+                          " and ifnull(ID_USU_ESTAB,'') != '' " +*/
                           " and ID_REGISTRO <= ? "
           );
           consulta.bindString(1, ultimoId);
@@ -767,9 +768,9 @@ public class Persistencia extends Application {
               null;
       try {
         retorno = Post(UrlServidor+
-                        new String(Base64.decode("L2dldFZlcnNpb24v"
+                        new String(Base64.decode("L0dQU0xfZ2V0VmVyc2lvbi8="
                                 ,Base64.DEFAULT),"UTF-8")
-                ,param);//"/getVersion/"
+                ,param);//"/GPSL_getVersion/"
       } catch (UnsupportedEncodingException e) {
         e.printStackTrace();
       }
@@ -842,9 +843,9 @@ public class Persistencia extends Application {
     Map<String,Object> retorno = null;
     try {
       retorno = Post(UrlServidor+
-                      new String(Base64.decode("L3VwZGF0ZVVzdUVzdGFiLw=="
+                      new String(Base64.decode("L0dQU0xfdXBkYXRlVXN1RXN0YWIv"
                               ,Base64.DEFAULT),"UTF-8")
-              ,param); //"/updateUsuEstab/"
+              ,param); //"/GPSL_updateUsuEstab/"
     } catch (UnsupportedEncodingException e) {
       e.printStackTrace();
     }
@@ -891,9 +892,9 @@ public class Persistencia extends Application {
         param.put("P_TELEFONO_USU", estab.Telefono);
 
         Map<String,Object> retorno =  Post(UrlServidor+
-                        new String(Base64.decode("L2dldEVzdGFibGVjaW1pZW50by8="
+                        new String(Base64.decode("L0dQU0xfZ2V0RXN0YWJsZWNpbWllbnRvLw=="
                                 ,Base64.DEFAULT),"UTF-8")
-                ,param); //"/getEstablecimiento/"
+                ,param); //"/GPSL_getEstablecimiento/"
 
         if (retorno != null && retorno.size() >0)
         {
