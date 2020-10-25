@@ -90,13 +90,14 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     }
 
     private void setMenuEntradaSalida(Menu _menu) {
-        Establecimiento establecimiento = persistencia.getEstablecimientoLocal();
+        /*Establecimiento establecimiento = persistencia.getEstablecimientoLocal();
         if(establecimiento != null){
             if(establecimiento.RegistraSalidas)
                 _menu.findItem(R.id.registrarSalidas).setVisible(true);
             else
                 _menu.findItem(R.id.registrarSalidas).setVisible(false);
-        }
+        }*/
+        _menu.findItem(R.id.registrarSalidas).setVisible(true);
     }
 
     @Override

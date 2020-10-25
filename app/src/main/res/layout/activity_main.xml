@@ -20,16 +20,12 @@
         android:layout_height="70dp"
         android:layout_marginStart="32dp"
         android:layout_marginLeft="32dp"
-        android:layout_marginTop="32dp"
         android:layout_marginEnd="16dp"
         android:layout_marginRight="16dp"
-        android:layout_marginBottom="56dp"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.723"
+        app:layout_constraintHorizontal_bias="0.69"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/btnGuardar"
-        app:layout_constraintVertical_bias="0.447"
+        app:layout_constraintTop_toTopOf="@+id/imageView"
         app:srcCompat="@drawable/escudo_sl" />
 
     <ImageView
@@ -38,16 +34,13 @@
         android:layout_height="70dp"
         android:layout_marginStart="16dp"
         android:layout_marginLeft="16dp"
-        android:layout_marginTop="32dp"
+        android:layout_marginTop="104dp"
         android:layout_marginEnd="32dp"
         android:layout_marginRight="32dp"
-        android:layout_marginBottom="56dp"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.273"
+        app:layout_constraintHorizontal_bias="0.29"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/btnGuardar"
-        app:layout_constraintVertical_bias="0.447"
         app:srcCompat="@drawable/unsl2" />
 
     <Button
@@ -213,15 +206,14 @@
         android:id="@+id/ultSincronizacion"
         android:layout_width="329dp"
         android:layout_height="33dp"
+        android:layout_marginTop="16dp"
         android:lineSpacingExtra="5sp"
         android:text="Última Sincronización con Sistema Central de Trazabilidad Digital de Salud:"
         android:textSize="12sp"
         android:textStyle="bold"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/imageView"
-        app:layout_constraintVertical_bias="0.105"
         tools:text="Última Sincronización con Sistema Central de Trazabilidad Digital de Salud:" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
