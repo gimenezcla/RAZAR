@@ -290,7 +290,8 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             alertDialog.setCancelable(false);
             alertDialog.setTitle("Trazar - Trazabilidad Digital");
             alertDialog.setMessage("Por favor conecte a Internet su dispositivo para" +
-                    " subir la trazabilidad al servidor principal de Salud.");
+                    " subir la información al Sistema Central de Trazabilidad Digital de Salud." +
+                    " Verifique tambien que la fecha y hora de su dispositivo sean correctas.");
             alertDialog.setPositiveButton("OK", new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
@@ -300,7 +301,8 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
             if(dias >=4){
                 alertDialog.setMessage("Para continuar usando la App, por favor conecte a Internet su dispositivo para" +
-                        " subir la trazabilidad al servidor principal de Salud.");
+                        " subir la información al Sistema Central de Trazabilidad Digital de Salud." +
+                        " Verifique tambien que la fecha y hora de su dispositivo sean correctas.");
                 alertDialog.setPositiveButton("OK", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
@@ -568,6 +570,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                             }
                         }
                     }
+
              );
 
             findViewById(R.id.progressBarMain).setVisibility(View.GONE);

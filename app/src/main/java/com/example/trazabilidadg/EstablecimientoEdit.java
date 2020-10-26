@@ -66,6 +66,8 @@ public class EstablecimientoEdit extends AppCompatActivity {
 
         Establecimiento establecimiento = MainActivity.persistencia.getEstablecimientoLocal();
 
+
+
         EntradasYSalidas.setChecked(false);
         Solo_Entradas.setChecked(false);
 
@@ -84,13 +86,10 @@ public class EstablecimientoEdit extends AppCompatActivity {
         edNombreEstablecimiento.setVisibility(View.VISIBLE);
         edNombreEstablecimiento.setText(establecimiento.NombreEstablecimiento);
 
-        EntradasYSalidas.setVisibility(View.VISIBLE);
-        Solo_Entradas.setVisibility(View.VISIBLE);
-
-
         edTelefono.setEnabled(false);
         edTelefono.setVisibility(View.VISIBLE);
         edTelefono.setText(establecimiento.Telefono);
+
 
         EntradasYSalidas.setVisibility(View.VISIBLE);
         Solo_Entradas.setVisibility(View.VISIBLE);
@@ -104,15 +103,22 @@ public class EstablecimientoEdit extends AppCompatActivity {
         EntradasYSalidas.setEnabled(false);
         Solo_Entradas.setEnabled(false);
 
-        if(!establecimiento.TelefonoEstab.isEmpty() )
+        if(establecimiento.TelefonoEstab != null && !establecimiento.TelefonoEstab.isEmpty() )
         {
-            edNombreEstablecimiento.setEnabled(true);
+            /*edNombreEstablecimiento.setEnabled(true);
             edTelefono.setEnabled(true);
             edCuitDniResponsable.setEnabled(true);
             EntradasYSalidas.setEnabled(true);
-            Solo_Entradas.setEnabled(true);
+            Solo_Entradas.setEnabled(true);*/
 
             //edCuitDniResponsable.setEnabled(true);
+
+            edDomicilio.setEnabled(false);
+            edNombreResponsable.setEnabled(false);
+            edPermanencia.setEnabled(false);
+            edTelefonoEstab.setEnabled(false);
+            spLocalidad.setEnabled(false);
+
 
             edDomicilio.setVisibility(View.VISIBLE);
             edDomicilio.setText(establecimiento.Domicilio);
@@ -149,7 +155,7 @@ public class EstablecimientoEdit extends AppCompatActivity {
             int IndexLocalidad = listaLocalidades.indexOf(establecimiento.Localidad);
             spLocalidad.setSelection(IndexLocalidad);
 
-            btnGuardar.setVisibility(View.VISIBLE);
+            //btnGuardar.setVisibility(View.VISIBLE);
             btnGuardar.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

@@ -218,7 +218,7 @@ public class Persistencia extends Application {
     try {
       //https://www.programainformatico.sanluis.gob.ar/ords/salud/GPSL_Trazabilidad
       UrlServidor = new String(Base64.decode("aHR0cHM6Ly93d3cucHJvZ3JhbWFpbmZvcm1hdGljby5zYW5sdWlzLmdvYi5hci9vcmRzL3NhbHVkL0dQU0xfVHJhemFiaWxpZGFk"
-              ,Base64.DEFAULT),"UTF-8") + "Test";
+              ,Base64.DEFAULT),"UTF-8") ;//+ "Test";
     } catch (UnsupportedEncodingException e) {
       e.printStackTrace();
     }

@@ -130,12 +130,9 @@ public class SeleccionEstablecimientoActivity extends AppCompatActivity {
         buttonCrear.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //Abre Seleccion establecimiento
-                //if (txtCuit.getText().toString().isEmpty()) return;
-                //if (txtTel.getText().toString().isEmpty()) return;
-
-                //Abre Activity Comercio, si no existe.
                 Intent intent = new Intent(SeleccionEstablecimientoActivity.this, EstablecimientoActivity.class);
+                intent.putExtra("CUIT",Cuit);
+                intent.putExtra("TELEFONO_USU",Telefono_usu);
                 startActivityForResult(intent,12);
 
             }

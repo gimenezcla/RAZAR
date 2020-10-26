@@ -4,9 +4,12 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.accounts.AccountManager;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 
@@ -15,6 +18,7 @@ import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
 
 import java.util.Arrays;
+import java.util.Map;
 
 import static android.Manifest.permission.ACCESS_COARSE_LOCATION;
 import static android.Manifest.permission.ACCESS_FINE_LOCATION;
@@ -34,10 +38,23 @@ public class SplashActivity extends AppCompatActivity {
         //Intent service = new Intent(this, MyBrodcastRecieverService.class);
         //startService(service);
 
-        //SQLiteDatabase db = openOrCreateDatabase("GermanDB", Context.MODE_PRIVATE, null);
+        persistencia = ((Persistencia)getApplication());
 
-        // db.execSQL("DROP TABLE QRs"); // Descomentar cuando se quiera vaciar la Base de Datos
-        persistencia = ((Persistencia)getApplication());//new Persistencia(db);
+        new AsyncTask<String, Void, String>() {
+            @Override
+            protected String doInBackground(String... strings) {
+                persistencia.EnviarVisitasMasivasPendientes();
+                return null;
+            }
+            @Override
+            protected void onPostExecute(String result) {
+                super.onPostExecute(result);
+            }
+        }.execute();
+
+
+
+
 
         new Handler().postDelayed(new Runnable(){
             public void run(){
