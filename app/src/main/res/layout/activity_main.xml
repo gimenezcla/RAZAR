@@ -9,7 +9,7 @@
 
 <androidx.constraintlayout.widget.ConstraintLayout
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
     android:focusableInTouchMode="true"
     tools:context=".MainActivity">
 
@@ -19,9 +19,8 @@
         android:layout_width="70dp"
         android:layout_height="70dp"
         android:layout_marginStart="32dp"
-        android:layout_marginLeft="32dp"
         android:layout_marginEnd="16dp"
-        android:layout_marginRight="16dp"
+        android:contentDescription="@string/logosanluis"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.69"
         app:layout_constraintStart_toStartOf="parent"
@@ -33,10 +32,9 @@
         android:layout_width="70dp"
         android:layout_height="70dp"
         android:layout_marginStart="16dp"
-        android:layout_marginLeft="16dp"
         android:layout_marginTop="104dp"
         android:layout_marginEnd="32dp"
-        android:layout_marginRight="32dp"
+        android:contentDescription="@string/logounsl"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.29"
         app:layout_constraintStart_toStartOf="parent"
@@ -63,7 +61,8 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.507"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        android:autofillHints="" />
     <EditText
         android:id="@+id/txtApellidos"
         android:layout_width="348dp"
@@ -75,7 +74,8 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/txtDNI" />
+        app:layout_constraintTop_toBottomOf="@+id/txtDNI"
+        android:autofillHints="" />
     <EditText
         android:id="@+id/txtNombres"
         android:layout_width="348dp"
@@ -87,7 +87,8 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/txtApellidos" />
+        app:layout_constraintTop_toBottomOf="@+id/txtApellidos"
+        android:autofillHints="" />
     <EditText
         android:id="@+id/txtTelefono"
         android:layout_width="348dp"
@@ -99,7 +100,8 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/txtNombres" />
+        app:layout_constraintTop_toBottomOf="@+id/txtNombres"
+        android:autofillHints="" />
     <EditText
         android:id="@+id/txtDescripcion"
         android:layout_width="348dp"
@@ -112,7 +114,8 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/txtTelefono" />
+        app:layout_constraintTop_toBottomOf="@+id/txtTelefono"
+        android:autofillHints="" />
 
     <Button
         android:id="@+id/btnGuardar"
@@ -120,7 +123,7 @@
         android:layout_width="162dp"
         android:layout_height="43dp"
         android:layout_marginTop="16dp"
-        android:text="Guardar"
+        android:text="@string/guardar"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.497"
         app:layout_constraintStart_toStartOf="parent"
@@ -131,7 +134,6 @@
         android:layout_width="68dp"
         android:layout_height="57dp"
         android:layout_marginEnd="28dp"
-        android:layout_marginRight="28dp"
         android:layout_marginBottom="208dp"
         android:background="?android:attr/actionModeFindDrawable"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -144,9 +146,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="28dp"
-        android:layout_marginRight="28dp"
         android:layout_marginBottom="44dp"
-        android:text="Usuario:"
+        android:text="@string/usuario"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
@@ -179,7 +180,6 @@
         android:layout_width="68dp"
         android:layout_height="31dp"
         android:layout_marginEnd="28dp"
-        android:layout_marginRight="28dp"
         android:ellipsize="middle"
         android:gravity="center"
         android:lines="2"
@@ -208,7 +208,7 @@
         android:layout_height="33dp"
         android:layout_marginTop="16dp"
         android:lineSpacingExtra="5sp"
-        android:text="Última Sincronización con Sistema Central de Trazabilidad Digital de Salud:"
+        android:text="@string/lbl_ultima_sinc"
         android:textSize="12sp"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"

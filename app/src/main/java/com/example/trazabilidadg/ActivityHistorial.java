@@ -115,7 +115,8 @@ public class ActivityHistorial extends AppCompatActivity {
             try {
                 date = (Date) formatterServer.parse(fila.getString(0));
                 valores = "";
-                valores += "Fecha: " + formatterClient.format(date) +" E: " + fila.getString(5) + "\n";
+                valores += "Fecha: " + formatterClient.format(date) +" Enviado: " +
+                        (fila.getString(5).equals("0") ? "N" : "S") + "\n";
                 //valores += "Dni: " + fila.getString(1) + "\n";
                 valores += "Nombre: " + fila.getString(2) +" "+ fila.getString(3) + "\n";
                 valores += "Tipo: " + fila.getString(4) ;//+ "\n";

@@ -9,7 +9,7 @@
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
     tools:context=".EstablecimientoActivity">
 
         <EditText
@@ -21,7 +21,8 @@
             android:inputType="number"
             app:layout_constraintEnd_toEndOf="@+id/rbEntradaSalida"
             app:layout_constraintStart_toStartOf="@+id/rbEntradaSalida"
-            app:layout_constraintTop_toBottomOf="@+id/rbEntradaSalida" />
+            app:layout_constraintTop_toBottomOf="@+id/rbEntradaSalida"
+            android:autofillHints="" />
 
         <EditText
             android:id="@+id/edTelefono"
@@ -32,42 +33,47 @@
             android:inputType="phone"
             app:layout_constraintEnd_toEndOf="@+id/edNombreResponsable"
             app:layout_constraintStart_toStartOf="@+id/edNombreResponsable"
-            app:layout_constraintTop_toBottomOf="@+id/edNombreResponsable" />
+            app:layout_constraintTop_toBottomOf="@+id/edNombreResponsable"
+            android:autofillHints="" />
 
         <EditText
             android:id="@+id/edCuitDniResponsable"
             android:layout_width="341dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="24dp"
-            android:layout_marginLeft="24dp"
             android:layout_marginTop="24dp"
             android:layout_marginEnd="24dp"
-            android:layout_marginRight="24dp"
             android:enabled="false"
             android:hint="@string/comercio_cuit"
+            android:inputType="number"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/textView5" />
+            app:layout_constraintTop_toBottomOf="@+id/textView5"
+            android:autofillHints="" />
 
         <EditText
-        android:id="@+id/edNombreEstablecimiento"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:hint="@string/comercio_nombre"
-        app:layout_constraintEnd_toEndOf="@+id/edCuitDniResponsable"
-        app:layout_constraintStart_toStartOf="@+id/edCuitDniResponsable"
-        app:layout_constraintTop_toBottomOf="@+id/edCuitDniResponsable" />
+            android:id="@+id/edNombreEstablecimiento"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:autofillHints=""
+            android:hint="@string/comercio_nombre"
+            android:inputType="text"
+            app:layout_constraintEnd_toEndOf="@+id/edCuitDniResponsable"
+            app:layout_constraintStart_toStartOf="@+id/edCuitDniResponsable"
+            app:layout_constraintTop_toBottomOf="@+id/edCuitDniResponsable" />
 
-    <EditText
-        android:id="@+id/edDomicilio"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:hint="@string/comercio_domicilio"
-        app:layout_constraintEnd_toEndOf="@+id/edNombreEstablecimiento"
-        app:layout_constraintStart_toStartOf="@+id/edNombreEstablecimiento"
-        app:layout_constraintTop_toBottomOf="@+id/edNombreEstablecimiento" />
+        <EditText
+            android:id="@+id/edDomicilio"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:hint="@string/comercio_domicilio"
+            android:inputType="text"
+            app:layout_constraintEnd_toEndOf="@+id/edNombreEstablecimiento"
+            app:layout_constraintStart_toStartOf="@+id/edNombreEstablecimiento"
+            app:layout_constraintTop_toBottomOf="@+id/edNombreEstablecimiento"
+            android:autofillHints="" />
 
     <Spinner
         android:id="@+id/spLocalidad"
@@ -86,9 +92,11 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:hint="@string/comercio_responsable"
+            android:inputType="text"
             app:layout_constraintEnd_toEndOf="@+id/spLocalidad"
             app:layout_constraintStart_toStartOf="@+id/spLocalidad"
-            app:layout_constraintTop_toBottomOf="@+id/spLocalidad" />
+            app:layout_constraintTop_toBottomOf="@+id/spLocalidad"
+            android:autofillHints="" />
 
         <Button
         android:id="@+id/btnGuardar"
@@ -116,13 +124,13 @@
                 android:id="@+id/Solo_Entradas"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Solo registra Entradas" />
+                android:text="@string/solo_registra_entradas" />
 
             <RadioButton
                 android:id="@+id/EntradasYSalidas"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Registra Entradas y Salidas" />
+                android:text="@string/registra_entradas_y_salidas" />
         </RadioGroup>
 
 
