@@ -13,26 +13,27 @@
 
         <EditText
             android:id="@+id/edCuit"
-            android:layout_width="278dp"
+            android:layout_width="0dp"
             android:layout_height="50dp"
             android:layout_marginStart="16dp"
             android:layout_marginLeft="16dp"
             android:layout_marginTop="16dp"
             android:layout_marginEnd="16dp"
             android:layout_marginRight="16dp"
-            android:ems="10"
             android:autofillHints=""
+            android:ems="10"
             android:hint="@string/cuit_establecimiento"
             android:inputType="number"
             app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toBottomOf="@+id/textView2" />
 
         <Button
             android:id="@+id/btnSiguiente"
             android:layout_width="111dp"
             android:layout_height="42dp"
-            android:layout_marginTop="56dp"
+            android:layout_marginTop="32dp"
             android:text="@string/btn_siguiente"
             app:layout_constraintEnd_toEndOf="@+id/edTel"
             app:layout_constraintStart_toStartOf="@+id/edTel"
@@ -40,15 +41,31 @@
 
         <EditText
             android:id="@+id/edTel"
-            android:layout_width="213dp"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginLeft="16dp"
             android:layout_marginTop="32dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginRight="16dp"
+            android:autofillHints=""
             android:ems="10"
             android:hint="@string/este_telefono"
             android:inputType="phone"
             app:layout_constraintEnd_toEndOf="@+id/edCuit"
             app:layout_constraintStart_toStartOf="@+id/edCuit"
-            app:layout_constraintTop_toBottomOf="@+id/edCuit"
-            android:autofillHints="" />
+            app:layout_constraintTop_toBottomOf="@+id/edCuit" />
+
+        <TextView
+            android:id="@+id/textView2"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:gravity="center|center_horizontal|center_vertical"
+            android:text="@string/TextoBienvenido"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="@+id/edCuit"
+            app:layout_constraintStart_toStartOf="@+id/edCuit"
+            app:layout_constraintTop_toTopOf="parent" />
     </androidx.constraintlayout.widget.ConstraintLayout>
     </ScrollView>

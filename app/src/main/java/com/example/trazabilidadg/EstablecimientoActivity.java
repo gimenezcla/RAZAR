@@ -3,6 +3,7 @@ package com.example.trazabilidadg;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
+import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
@@ -29,23 +30,30 @@ public class EstablecimientoActivity extends AppCompatActivity {
     public static String Permanencia;
     public static Boolean RegistraSalidas = false;
     public ProgressBar progressBar;
+    private Persistencia persistencia;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_comercio);
+        persistencia = ((Persistencia) this.getApplicationContext());
 
         final String Cuit = getIntent().getStringExtra("CUIT");
         final String Telefono_usu = getIntent().getStringExtra("TELEFONO_USU");
 
+        if(Cuit == null || Telefono_usu == null)
+            finish();
+
         //Carga las localidades.
         final Spinner spLocalidad = findViewById(R.id.spLocalidad);
-        ArrayList<String> listaLocalidades= MainActivity.persistencia.getLocalidades();
+        ArrayList<String> listaLocalidades= persistencia.getLocalidades();
         listaLocalidades.add(0,"Seleccione una Localidad...");
-        spLocalidad.setAdapter(new ArrayAdapter<String>(this,
-                android.R.layout.simple_spinner_dropdown_item, listaLocalidades));
 
+        if(listaLocalidades!= null) {
+            spLocalidad.setAdapter(new ArrayAdapter<String>(this,
+                    android.R.layout.simple_spinner_dropdown_item, listaLocalidades));
+        }
 
         final EditText edCuitDniResponsable = findViewById(R.id.edCuitDniResponsable);
         edCuitDniResponsable.setText(Cuit);
@@ -144,16 +152,27 @@ public class EstablecimientoActivity extends AppCompatActivity {
                 progressBar.setVisibility(View.VISIBLE);
                 final Handler h = new Handler();
 
-                SingleShotLocationProvider.requestSingleUpdate(EstablecimientoActivity.this,
+
+
+
+                /*SingleShotLocationProvider.requestSingleUpdate(EstablecimientoActivity.this,
                         new SingleShotLocationProvider.LocationCallback() {
                             @Override public void onNewLocationAvailable(final SingleShotLocationProvider.GPSCoordinates location) {
-
+*/
                                 //Cierra y vuelve a Main.
                                 new AsyncTask<String, Void, Integer>() {
                                     @Override
                                     protected Integer doInBackground(final String ... params ) {
                                         // something you know that will take a few seconds
-                                        int IdUsuEstab = MainActivity.persistencia.GuardarUsuarioEstablecimiento(
+                                        Location location = persistencia.getLocation();
+                                        double lat = 0;
+                                        double lon = 0;
+                                        if(location != null){
+                                            lat = location.getLatitude();
+                                            lon = location.getLongitude();
+                                        }
+
+                                        int IdUsuEstab = persistencia.GuardarUsuarioEstablecimiento(
                                                 CuitDniResponsable,
                                                 NombreEstablecimiento,
                                                 NombreResponsable,
@@ -164,8 +183,8 @@ public class EstablecimientoActivity extends AppCompatActivity {
                                                 MainActivity.USUARIO,
                                                 Permanencia,
                                                 Telefono_usu,
-                                                location.latitude,
-                                                location.longitude);
+                                                lat,
+                                                lon);
 
 
                                         return IdUsuEstab;
@@ -177,7 +196,7 @@ public class EstablecimientoActivity extends AppCompatActivity {
                                         if(result == null){
                                             progressBar.setVisibility(View.INVISIBLE);
                                             CustomToast.showError(EstablecimientoActivity.this
-                                                    , "Ocurrio un error, compruebe su conexión a internet.",Toast.LENGTH_LONG);
+                                                    , "Ocurrio un error, compruebe su conexión a internet y que la fecha de su dispositivo sea correcta.",Toast.LENGTH_LONG);
                                         }else
                                         {
                                             progressBar.setVisibility(View.INVISIBLE);
@@ -187,8 +206,8 @@ public class EstablecimientoActivity extends AppCompatActivity {
                                     }
 
                                 }.execute();
-                            }
-                });
+                            /*}
+                });*/
 
             }
         });

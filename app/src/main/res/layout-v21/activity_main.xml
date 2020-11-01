@@ -25,9 +25,7 @@
         app:layout_constraintHorizontal_bias="0.69"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@+id/imageView"
-        app:srcCompat="@drawable/escudo_sl"
-        android:layout_marginLeft="32dp"
-        android:layout_marginRight="16dp" />
+        app:srcCompat="@drawable/escudo_sl" />
 
     <ImageView
         android:id="@+id/imageView"
@@ -41,9 +39,7 @@
         app:layout_constraintHorizontal_bias="0.29"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/btnGuardar"
-        app:srcCompat="@drawable/unsl2"
-        android:layout_marginLeft="16dp"
-        android:layout_marginRight="32dp" />
+        app:srcCompat="@drawable/unsl2" />
 
     <Button
         android:id="@+id/btnLeerCodigo"
@@ -97,7 +93,7 @@
         android:hint="@string/main_nombres"
         android:inputType="textPersonName"
         app:layout_constraintEnd_toEndOf="@+id/txtApellidos"
-        app:layout_constraintHorizontal_bias="0.483"
+        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="@+id/txtApellidos"
         app:layout_constraintTop_toBottomOf="@+id/txtApellidos" />
 
@@ -146,9 +142,8 @@
         android:layout_width="68dp"
         android:layout_height="57dp"
         android:layout_marginEnd="28dp"
-        android:layout_marginRight="28dp"
         android:layout_marginBottom="208dp"
-        android:background="@android:drawable/ic_menu_agenda"
+        android:background="?android:attr/actionModeFindDrawable"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/btnGuardar"
@@ -163,8 +158,7 @@
         android:text="@string/usuario"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginRight="28dp" />
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <Button
         android:id="@+id/btnManual"
@@ -202,8 +196,7 @@
         android:textSize="12sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/btnVer"
-        tools:text="@string/btn_visitas"
-        android:layout_marginRight="28dp" />
+        tools:text="@string/btn_visitas" />
 
     <ProgressBar
         android:id="@+id/progressBarMain"

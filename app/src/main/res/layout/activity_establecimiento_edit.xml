@@ -9,7 +9,7 @@ android:fillViewport="true"> <!--IMPORTANT otherwise backgrnd img. will not fill
 
 <androidx.constraintlayout.widget.ConstraintLayout
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
     tools:context=".EstablecimientoEdit">
 
     <EditText
@@ -21,7 +21,8 @@ android:fillViewport="true"> <!--IMPORTANT otherwise backgrnd img. will not fill
         android:inputType="phone"
         app:layout_constraintEnd_toEndOf="@+id/edDomicilio"
         app:layout_constraintStart_toStartOf="@+id/edDomicilio"
-        app:layout_constraintTop_toBottomOf="@+id/edDomicilio" />
+        app:layout_constraintTop_toBottomOf="@+id/edDomicilio"
+        android:autofillHints="" />
 
     <EditText
         android:id="@+id/edCuitDniResponsable"
@@ -34,17 +35,21 @@ android:fillViewport="true"> <!--IMPORTANT otherwise backgrnd img. will not fill
         android:layout_marginRight="24dp"
         android:enabled="false"
         android:hint="@string/comercio_cuit"
+        android:inputType="number"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        android:autofillHints="" />
 
     <EditText
         android:id="@+id/edNombreEstablecimiento"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
+        android:autofillHints=""
         android:hint="@string/comercio_nombre"
+        android:inputType="text"
         app:layout_constraintEnd_toEndOf="@+id/edCuitDniResponsable"
         app:layout_constraintStart_toStartOf="@+id/edCuitDniResponsable"
         app:layout_constraintTop_toBottomOf="@+id/edCuitDniResponsable" />
@@ -55,9 +60,11 @@ android:fillViewport="true"> <!--IMPORTANT otherwise backgrnd img. will not fill
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:hint="@string/comercio_domicilio"
+        android:inputType="text"
         app:layout_constraintEnd_toEndOf="@+id/edNombreEstablecimiento"
         app:layout_constraintStart_toStartOf="@+id/edNombreEstablecimiento"
-        app:layout_constraintTop_toBottomOf="@+id/edNombreEstablecimiento" />
+        app:layout_constraintTop_toBottomOf="@+id/edNombreEstablecimiento"
+        android:autofillHints="" />
 
     <Spinner
         android:id="@+id/spLocalidad"
@@ -82,7 +89,8 @@ android:fillViewport="true"> <!--IMPORTANT otherwise backgrnd img. will not fill
         app:layout_constraintEnd_toEndOf="@+id/rbEntradaSalida"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="@+id/rbEntradaSalida"
-        app:layout_constraintTop_toBottomOf="@+id/rbEntradaSalida" />
+        app:layout_constraintTop_toBottomOf="@+id/rbEntradaSalida"
+        android:autofillHints="" />
 
     <RadioGroup
         android:id="@+id/rbEntradaSalida"
@@ -100,14 +108,14 @@ android:fillViewport="true"> <!--IMPORTANT otherwise backgrnd img. will not fill
             android:id="@+id/Solo_Entradas"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Solo registra Entradas"
+            android:text="@string/solo_registra_entradas"
             android:visibility="visible" />
 
         <RadioButton
             android:id="@+id/EntradasYSalidas"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Registra Entradas y Salidas"
+            android:text="@string/registra_entradas_y_salidas"
             android:visibility="visible" />
     </RadioGroup>
 
@@ -121,7 +129,8 @@ android:fillViewport="true"> <!--IMPORTANT otherwise backgrnd img. will not fill
         app:layout_constraintEnd_toEndOf="@+id/edNombreResponsable"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="@+id/edNombreResponsable"
-        app:layout_constraintTop_toBottomOf="@+id/edNombreResponsable" />
+        app:layout_constraintTop_toBottomOf="@+id/edNombreResponsable"
+        android:autofillHints="" />
 
     <Button
         android:id="@+id/btnGuardar"
@@ -140,9 +149,11 @@ android:fillViewport="true"> <!--IMPORTANT otherwise backgrnd img. will not fill
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:hint="@string/comercio_responsable"
+        android:inputType="text"
         app:layout_constraintEnd_toEndOf="@+id/spLocalidad"
         app:layout_constraintStart_toStartOf="@+id/spLocalidad"
-        app:layout_constraintTop_toBottomOf="@+id/spLocalidad" />
+        app:layout_constraintTop_toBottomOf="@+id/spLocalidad"
+        android:autofillHints="" />
 
     <ProgressBar
         android:id="@+id/progressBarComercio"

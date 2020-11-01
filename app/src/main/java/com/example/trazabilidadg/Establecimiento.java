@@ -17,4 +17,5 @@ public class Establecimiento {
 
     public String TipoMovimientoActual;
 
+    public boolean Enviado;
 }

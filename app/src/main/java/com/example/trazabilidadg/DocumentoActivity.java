@@ -19,11 +19,14 @@ public class DocumentoActivity extends AppCompatActivity {
 
     public static String Cuit;
     public static String Telefono;
+    private Persistencia persistencia;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_documento);
 
+        persistencia = (Persistencia)getApplication();
         final EditText txtCuit = findViewById(R.id.edCuit);
         final EditText txtTel = findViewById(R.id.edTel);
 
@@ -65,6 +68,7 @@ public class DocumentoActivity extends AppCompatActivity {
         });
 
         showSettingAlert();
+
     }
 
     @Override

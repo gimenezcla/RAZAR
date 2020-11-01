@@ -46,7 +46,8 @@ public class ActivityHistorial extends AppCompatActivity {
     ListView lvValores;
     Button btnVaciar;
 
-    ArrayAdapter<String> adapter;
+    public ArrayAdapter<String> adapter;
+    private Persistencia persistencia;
 
     public void generateNoteOnSD(Context context, String sFileName, String sBody) {
         try {
@@ -88,18 +89,16 @@ public class ActivityHistorial extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_historial);
 
-        DB = ((Persistencia)getApplication()).db;
+        persistencia = (Persistencia)getApplication();
+        DB = persistencia.db;
 
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
         DateFormat formatterServer = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
-        DateFormat formatterClient = new SimpleDateFormat("dd/MM/yyyy - HH:mm", Locale.getDefault());;
         Date date;
-        TimeZone serverTimeZone;
-
-        formatterServer.setTimeZone(TimeZone.getTimeZone("UTC−03:00"));
+        formatterServer.setTimeZone(TimeZone.getTimeZone("UTC"));
 
         lvValores = (ListView)findViewById(R.id.lvValores);
 
@@ -113,9 +112,10 @@ public class ActivityHistorial extends AppCompatActivity {
         while(fila.moveToNext())
         {
             try {
+                //date = (Date) formatterServer.parse(fila.getString(0));
                 date = (Date) formatterServer.parse(fila.getString(0));
                 valores = "";
-                valores += "Fecha: " + formatterClient.format(date) +" Enviado: " +
+                valores += "Fecha: " + persistencia.corregirFecha(date,"dd/MM/yyyy - HH:mm") +" Enviado: " +
                         (fila.getString(5).equals("0") ? "N" : "S") + "\n";
                 //valores += "Dni: " + fila.getString(1) + "\n";
                 valores += "Nombre: " + fila.getString(2) +" "+ fila.getString(3) + "\n";

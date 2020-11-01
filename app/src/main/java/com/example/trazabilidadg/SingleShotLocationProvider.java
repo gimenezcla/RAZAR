@@ -8,8 +8,10 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.Looper;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 
 class SingleShotLocationProvider {
@@ -23,10 +25,11 @@ class SingleShotLocationProvider {
     // call usually takes <10ms
     public static void requestSingleUpdate(final Context context, final LocationCallback callback) {
         final LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
-        boolean isNetworkEnabled = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+        boolean isNetworkEnabled =  locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+        // locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
         if (isNetworkEnabled) {
             Criteria criteria = new Criteria();
-            criteria.setAccuracy(Criteria.NO_REQUIREMENT);//ACCURACY_COARSE);
+            criteria.setAccuracy(Criteria.NO_REQUIREMENT);
             if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
                     && ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED
             )
@@ -79,18 +82,21 @@ class SingleShotLocationProvider {
         } else {
             boolean isGPSEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
             if (isGPSEnabled) {
-                Criteria criteria = new Criteria();
-                criteria.setAccuracy(Criteria.ACCURACY_FINE);
-                locationManager.requestSingleUpdate(criteria, new LocationListener() {
+                //Criteria criteria = new Criteria();
+                //criteria.setAccuracy(Criteria.ACCURACY_FINE);
+
+                Looper lo = Looper.myLooper();
+                locationManager.requestSingleUpdate(LocationManager.GPS_PROVIDER, new LocationListener() {
                     @Override
                     public void onLocationChanged(Location location) {
                         callback.onNewLocationAvailable(new GPSCoordinates(location.getLatitude(), location.getLongitude()));
+                        locationManager.removeUpdates(this);
                     }
 
                     @Override public void onStatusChanged(String provider, int status, Bundle extras) { }
                     @Override public void onProviderEnabled(String provider) { }
                     @Override public void onProviderDisabled(String provider) { }
-                }, null);
+                }, lo);
             }
         }
     }

@@ -1,16 +1,23 @@
 package com.example.trazabilidadg;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteConstraintException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteStatement;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
+import android.os.AsyncTask;
 import android.util.Base64;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
@@ -19,22 +26,16 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLEncoder;
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -49,16 +50,114 @@ import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
 import javax.net.ssl.HttpsURLConnection;
 
-public class Persistencia extends Application {
+public class Persistencia extends Application implements LocationListener {
   public SQLiteDatabase db;
-  public final String versionActual = "1.1";
+  public final String versionActual = "1.4";
 
   private String UrlServidor;
+  private double latitude = 0;
+  private double longitude= 0;
+
+  public void BuscarLocation() {
+    if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED &&
+            ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+      SingleShotLocationProvider.requestSingleUpdate(this,
+              new SingleShotLocationProvider.LocationCallback() {
+                @Override
+                public void onNewLocationAvailable(SingleShotLocationProvider.GPSCoordinates location) {
+                  latitude = location.latitude;
+                  longitude = location.longitude;
+                }
+              });
+    }
+  }
+
+  private void actualizarLocationMovimientos(double latitud, double longitud) {
+
+    try {
+      if(latitud > 0) {
+        SQLiteStatement consulta = db.compileStatement(
+                " UPDATE QRs set " +
+                        "LATITUD = ? ," +
+                        "LONGITUD = ? " +
+                        " where ENVIADO = 0 " +
+                        " and LATITUD LIKE '0%' "
+        );
+        consulta.bindString(1, String.valueOf(latitud));
+        consulta.bindString(1, String.valueOf(longitud));
+        consulta.executeUpdateDelete();
+      }
+    }catch (Exception e){}
+  }
+
+  public Location getLocation() {
+    Location l = new Location("");
+
+    new AsyncTask<Void, LinkedHashMap<String, Integer>, Void>() {
+      @Override
+      protected Void doInBackground(final Void ... params ) {
+        // something you know that will take a few seconds
+        return null;
+      }
+      @Override
+      protected void onPostExecute(Void establecimientos) {
+        super.onPostExecute(establecimientos);
+
+        LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        if (ActivityCompat.checkSelfPermission(Persistencia.this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED &&
+                ActivityCompat.checkSelfPermission(Persistencia.this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+          Location l = locationManager.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER);
+          if (l != null)
+            if(l.getLatitude() != (new Location("")).getLatitude()){
+              actualizarLocationMovimientos(l.getLatitude(), l.getLongitude());
+              latitude = l.getLatitude();
+              longitude = l.getLongitude();
+            }
+        }
+      }
+
+    }.execute();
+
+
+    if(latitude != 0) {
+      l.setLatitude(latitude);
+      l.setLongitude(longitude);
+      actualizarLocationMovimientos(l.getLatitude(), l.getLongitude());
+      return l;
+    }
+
+    l = getUltimaLocationDB();
+    if(l != null)
+      if(l.getLatitude() != (new Location("")).getLatitude()) {
+        actualizarLocationMovimientos(l.getLatitude(), l.getLongitude());
+        return l;
+      }
+
+    return null;
+  }
+
+  private Location getUltimaLocationDB() {
+
+    Cursor cursor = db.rawQuery("Select latitud, longitud from qrs order by id_registro desc LIMIT 1",null);
+
+    if(cursor.moveToNext()){
+      Location l = new Location("");
+      l.setLatitude( cursor.getDouble(0)  );
+      l.setLongitude( cursor.getDouble(1)  );
+      return l;
+    }
+    return null;
+  }
+
 
   public Integer getIdUsuEstabDBLocal() {
     Cursor cursor = db.rawQuery("Select COALESCE(MAX(ID_USU_ESTAB),0) from ESTAB_USUARIO",null);
-    cursor.moveToNext();
-    return cursor.getInt(0);
+    Integer idUsuEstab = null;
+    if(cursor.moveToNext()){
+      idUsuEstab= cursor.getInt(0);
+      cursor.close();
+    }
+    return idUsuEstab;
   }
 
   public LinkedHashMap<String,Integer> getEstablecimientosPorCuit(String cuit) {
@@ -67,7 +166,8 @@ public class Persistencia extends Application {
     param.put("CUIT", cuit);
 
     //realiza el post
-    Map<String,Object> retorno = null;
+    PostResponse retorno;
+
     try {
       retorno = Post(UrlServidor+
                       new String(Base64.decode("L0dQU0xfZ2V0RXN0YWJQb3JDdWl0Lw=="
@@ -76,20 +176,40 @@ public class Persistencia extends Application {
 
       LinkedHashMap<String, Integer> Establecimientos = new LinkedHashMap<>();
 
+      String csvEstablecimientos ="";
       if (retorno != null) {
-        String csvEstablecimientos = retorno.get("P_LISTA").toString();
+        if(retorno.Completado && retorno.Codigo == 200) {
+          if(retorno.RetornoKeyValue.size() > 0 && retorno.RetornoKeyValue.get("P_LISTA") != null){
+            csvEstablecimientos = retorno.RetornoKeyValue.get("P_LISTA").toString();
 
-        String str[] = csvEstablecimientos.split("#");
-        for (int i = 0; i < str.length; i++) {
-          String arr[] = str[i].split(";");
-          Establecimientos.put(arr[1], Integer.parseInt(arr[0]));
-        }
-      }
+            String str[] = csvEstablecimientos.split("#");
+            for (int i = 0; i < str.length; i++) {
+
+              String arr[] = str[i].split(";");
+              if(arr.length>0)
+              {
+                if(arr[1] != null && arr[0] != null)
+                  try {
+                    Establecimientos.put(arr[1], Integer.parseInt(arr[0]));
+                  } catch (Exception e) {
+                    //e.printStackTrace();
+                  }
+              }
+            }
+            return Establecimientos;
+          }
+        }else
+          return null;
+      }else
+        return null;
+
       return Establecimientos;
-    } catch (UnsupportedEncodingException e) {
-      e.printStackTrace();
+
+    } catch (Exception e) {
+      LinkedHashMap<String, Integer> aa = new LinkedHashMap<>();
+      return null;
     }
-    return null;
+
   }
 
   public ArrayList<String> getLocalidades() {
@@ -100,6 +220,7 @@ public class Persistencia extends Application {
         aLocalidades.add(cursor.getString(0));
       } while (cursor.moveToNext());
     }
+    cursor.close();
     return aLocalidades;
   }
 
@@ -110,8 +231,7 @@ public class Persistencia extends Application {
     param.put("USUARIO", usuario);
     param.put("TELEFONO_USU", telefonoUsu);
 
-    Map<String,Object> retorno =
-            null;
+    PostResponse retorno = new PostResponse();
     try {
       retorno = Post(UrlServidor+
                       new String(Base64.decode("L0dQU0xfc2V0VXN1YXJpby8="
@@ -123,20 +243,21 @@ public class Persistencia extends Application {
 
     Integer IdUsuEstab = null;
 
-    if(retorno != null) {
-      IdUsuEstab = Integer.parseInt(retorno.get("P_ID_USU_ESTAB").toString());
-      String registraSalidas = retorno.get("P_REGISTRA_SALIDA").toString() == "SI" ? "1" : "0";
-
+    if(retorno != null && retorno.Codigo == 200 && retorno.Completado
+            && retorno.RetornoKeyValue.size() > 0 && retorno.RetornoKeyValue.get("P_ID_USU_ESTAB") != null) {
+      IdUsuEstab = Integer.parseInt(retorno.RetornoKeyValue.get("P_ID_USU_ESTAB").toString());
+      String registraSalidas = retorno.RetornoKeyValue.get("P_REGISTRA_SALIDA").toString() == "SI" ? "1" : "0";
 
       SQLiteStatement consulta = db.compileStatement(
               " INSERT INTO ESTAB_USUARIO( ID_USU_ESTAB , NOMBRE ," +
-                      "REGISTRA_SALIDA, TELEFONO_USU ) values (?, ?, ?, ?)"
+                      "REGISTRA_SALIDA, TELEFONO_USU, ENVIADO ) values (?, ?, ?, ?,?)"
       );
 
       consulta.bindString(1, IdUsuEstab.toString());
       consulta.bindString(2, nombreEstablecimiento);
       consulta.bindString(3, registraSalidas);
       consulta.bindString(4, telefonoUsu);
+      consulta.bindString(5, "1");
 
       consulta.executeInsert();
 
@@ -166,41 +287,45 @@ public class Persistencia extends Application {
     param.put("LATITUD", String.valueOf(latitude));
     param.put("LONGITUD", String.valueOf(longitude));
 
-    Map<String,Object> retorno = null;
+    PostResponse retorno = new PostResponse();
     try {
       retorno = Post(UrlServidor+
                       new String(Base64.decode("L0dQU0xfc2V0VXN1RXN0YWIv"
                               ,Base64.DEFAULT),"UTF-8")
               ,param); //"/GPSL_setUsuEstab/"
-    } catch (UnsupportedEncodingException e) {
+
+    } catch (Exception e) {
       e.printStackTrace();
     }
 
     Integer IdUsuEstab = null;
-    if(retorno != null)
+    if(retorno != null && retorno.Completado && retorno.Codigo == 200)
     {
-    IdUsuEstab = Integer.parseInt(retorno.get("P_ID_USU_ESTAB").toString());
+      if(retorno.RetornoKeyValue.get("P_ID_USU_ESTAB") != null) {
+        IdUsuEstab = Integer.parseInt(retorno.RetornoKeyValue.get("P_ID_USU_ESTAB").toString());
 
-    SQLiteStatement consulta = db.compileStatement(
-            " INSERT INTO ESTAB_USUARIO( ID_USU_ESTAB , NOMBRE , CUIT_DNI , LOCALIDAD , LATITUD , LONGITUD , RESPONSABLE , TELEFONO , " +
-                    "DOMICILIO , REGISTRA_SALIDA , TIEMPO_PERMANENCIA, TELEFONO_USU, TIPO_MOVIMIENTO_ACTUAL ) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-    );
-    consulta.bindString(1, IdUsuEstab.toString());
-    consulta.bindString(2, nombreEstablecimiento);
-    consulta.bindString(3, cuitDniResponsable);
-    consulta.bindString(4, localidad);
-    consulta.bindString(5, String.valueOf(latitude));
-    consulta.bindString(6, String.valueOf(longitude));
-    consulta.bindString(7, nombreResponsable);
-    consulta.bindString(8, telefono);
-    consulta.bindString(9, domicilio);
-    consulta.bindString(10, registraSalidas?"1":"0");
-    consulta.bindString(11, permanencia);
-    consulta.bindString(12, telefonoUsu);
-    consulta.bindString(13, "ENTRADA");
+        SQLiteStatement consulta = db.compileStatement(
+                " INSERT INTO ESTAB_USUARIO( ID_USU_ESTAB , NOMBRE , CUIT_DNI , LOCALIDAD , LATITUD , LONGITUD , RESPONSABLE , TELEFONO , " +
+                        "DOMICILIO , REGISTRA_SALIDA , TIEMPO_PERMANENCIA, TELEFONO_USU, TIPO_MOVIMIENTO_ACTUAL,ENVIADO ) " +
+                        "values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?)"
+        );
+        consulta.bindString(1, IdUsuEstab.toString());
+        consulta.bindString(2, nombreEstablecimiento);
+        consulta.bindString(3, cuitDniResponsable);
+        consulta.bindString(4, localidad);
+        consulta.bindString(5, String.valueOf(latitude));
+        consulta.bindString(6, String.valueOf(longitude));
+        consulta.bindString(7, nombreResponsable);
+        consulta.bindString(8, telefono);
+        consulta.bindString(9, domicilio);
+        consulta.bindString(10, registraSalidas ? "1" : "0");
+        consulta.bindString(11, permanencia);
+        consulta.bindString(12, telefonoUsu);
+        consulta.bindString(13, "ENTRADA");
+        consulta.bindString(14, "1");
 
-    consulta.executeInsert();
-
+        consulta.executeInsert();
+      }
     }
     return IdUsuEstab;
   }
@@ -222,6 +347,7 @@ public class Persistencia extends Application {
     } catch (UnsupportedEncodingException e) {
       e.printStackTrace();
     }
+    BuscarLocation();
   }
 
   private void EjecutarActualizacionDeTablas() {
@@ -251,8 +377,7 @@ public class Persistencia extends Application {
     Cursor fila = db.rawQuery("SELECT max(ULTIMA_SINCRONIZACION) FROM ESTAB_USUARIO ", null);
 
     DateFormat formatterServer = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
-    formatterServer.setTimeZone(TimeZone.getTimeZone("UTC−03:00"));
-    DateFormat formatterClient = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault());;
+    formatterServer.setTimeZone(TimeZone.getTimeZone("UTC"));
 
     while(fila.moveToNext()) {
       Date date = null;
@@ -261,7 +386,9 @@ public class Persistencia extends Application {
           return "";
 
         date = (Date) formatterServer.parse(fila.getString(0));
-        return formatterClient.format(date);
+
+        fila.close();
+        return corregirFecha(date,"dd/MM/yyyy HH:mm");
 
       } catch (ParseException e) {
         e.printStackTrace();
@@ -273,38 +400,45 @@ public class Persistencia extends Application {
   public void GuardarVisita(String Dni, String Apellido, String Nombres, String Genero, String Telefono, String Latitud,
                             String Longitud, String Descripcion, Integer idUsuEstab, String Tipo)
   {
-    SQLiteStatement consulta = db.compileStatement(
-            "INSERT INTO QRs( DNI, APELLIDO, NOMBRES, GENERO, " +
-                    "TIPO_MOVIMIENTO,TELEFONO,DESCRIPCION,LATITUD,LONGITUD,ID_USU_ESTAB,enviado)" +
-                    " VALUES(?, ?, ?, ?, ?, ?, ?,?,?,?,?)"
-    );
+    try {
+      SQLiteStatement consulta = db.compileStatement(
+              "INSERT INTO QRs( DNI, APELLIDO, NOMBRES, GENERO, " +
+                      "TIPO_MOVIMIENTO,TELEFONO,DESCRIPCION,LATITUD,LONGITUD,ID_USU_ESTAB,enviado)" +
+                      " VALUES(?, ?, ?, ?, ?, ?, ?,?,?,?,?)"
+      );
 
-    consulta.bindString(1, Dni);
-    consulta.bindString(2, Apellido);
-    consulta.bindString(3, Nombres);
-    consulta.bindString(4, Genero);
-    consulta.bindString(5, Tipo);
-    consulta.bindString(6, Telefono);
-    consulta.bindString(7, Descripcion);
-    consulta.bindString(8, Latitud);
-    consulta.bindString(9, Longitud);
-    consulta.bindString(10, getIdUsuEstabDBLocal().toString());
-    consulta.bindString(11, "0");
+      consulta.bindString(1, Dni);
+      consulta.bindString(2, Apellido);
+      consulta.bindString(3, Nombres);
+      consulta.bindString(4, Genero);
+      consulta.bindString(5, Tipo);
+      consulta.bindString(6, Telefono);
+      consulta.bindString(7, Descripcion);
+      consulta.bindString(8, Latitud);
+      consulta.bindString(9, Longitud);
+      consulta.bindString(10, getIdUsuEstabDBLocal().toString());
+      consulta.bindString(11, "0");
 
-    // ahora ejecutamos la consulta
-    consulta.executeInsert();
+      // ahora ejecutamos la consulta
+      consulta.executeInsert();
+    }catch (SQLiteConstraintException ex){ }
+
   }
 
-  public Map<String, Object> Post(String _url, HashMap<String,String> params){
+  public PostResponse Post(String _url, HashMap<String,String> params){
 
     URL githubEndpoint = null;
+    HttpsURLConnection myConnection = null;
+
     try {
+      String fecha = corregirFecha(new Date(), new String(Base64.decode("ZGRNTXl5eXk=",Base64.DEFAULT),"UTF-8"));
       githubEndpoint = new URL(_url);
-      HttpsURLConnection myConnection =
+      myConnection =
               (HttpsURLConnection) githubEndpoint.openConnection();
       myConnection.setRequestProperty(new String(Base64.decode("VXNlci1BZ2VudA==",Base64.DEFAULT),"UTF-8"),
               new String(Base64.decode("VHJhemFiaWxpZGFkIEdQU0wt",Base64.DEFAULT),"UTF-8") +
-                      new SimpleDateFormat(new String(Base64.decode("ZGRNTXl5eXk=",Base64.DEFAULT),"UTF-8")).format(new Date()));
+                      fecha +   //new SimpleDateFormat(new String(Base64.decode("ZGRNTXl5eXk=",Base64.DEFAULT),"UTF-8"))
+              new String(Base64.decode("LUFORFJPSUQ=",Base64.DEFAULT),"UTF-8"));
       myConnection.setRequestProperty("Content-Type", "application/json; utf-8");
       myConnection.setRequestMethod("POST");
       myConnection.setDoOutput(true);
@@ -321,54 +455,98 @@ public class Persistencia extends Application {
         StringBuilder response = new StringBuilder();
         String responseLine = null;
         while ((responseLine = br.readLine()) != null) {
-          response.append(responseLine.trim());}
-        Log.e("RESp POST","");
+          response.append(responseLine.trim());
+        }
+
+        //Genera la respuesta
+        PostResponse respuesta = new PostResponse();
+        respuesta.Codigo = myConnection.getResponseCode();
+        respuesta.Completado = true;
+
         if(!response.toString().isEmpty())
         {
           Log.e("RESp POST",response.toString());
-          return jsonToMap(new JSONObject(response.toString()));
+          respuesta.RetornoKeyValue = jsonToMap(new JSONObject(response.toString()));
         }
-        else
-          return null;
+
+        return respuesta;
 
       } else {
         // Error handling code goes here
         BufferedReader br_err = new BufferedReader(
                 new InputStreamReader(myConnection.getErrorStream(), "utf-8"));
 
+        //Genera la respuesta
+        PostResponse respuesta = new PostResponse();
+        respuesta.Codigo = myConnection.getResponseCode();
+        respuesta.Completado = true;
+
+
         StringBuilder response = new StringBuilder();
         String responseLine = null;
         while ((responseLine = br_err.readLine()) != null) {
           response.append(responseLine.trim());}
         String Error = response.toString();
+        respuesta.RetornoKeyValue = new HashMap<>();
+        respuesta.RetornoKeyValue.put("Error", Error);
+
         Log.e("Error POST",Error);
-        return null;
+
+        return respuesta;
       }
-    } catch (MalformedURLException e) {
-      e.printStackTrace();
     }
     catch (Exception e) {
       e.printStackTrace();
+      //Genera la respuesta
+      PostResponse respuesta = new PostResponse();
+      respuesta.Codigo = 0;
+      respuesta.Completado = false;
+      respuesta.RetornoKeyValue = new HashMap<>();
+      respuesta.RetornoKeyValue.put("Error", e.getMessage());
+      return respuesta;
     }
-    return null;
+    finally {
+      myConnection.disconnect();
+    }
+
+  }
+
+  public String corregirFecha(Date fecha,  String formato) {
+
+    DateFormat formatter = new SimpleDateFormat(formato);
+    formatter.setTimeZone(TimeZone.getTimeZone(TimeZone.getAvailableIDs(-3 * 60 * 60 *1000)[0]));
+    String temp = formatter.format(fecha);
+
+    return temp;
+
+
   }
 
 
   public void EnviarVisitasMasivasPendientes() {
+    try {
+      getLocation();
+    }catch(Exception e){}
+
 
     Cursor fila = db.rawQuery("SELECT *  FROM QRs " +
-                    " where ENVIADO = 0 " +
-                    /*" and ifnull(NOMBRES,'') != '' " +
-                    " and ifnull(APELLIDO,'') != '' " +
-                    " and ifnull(DNI,'') != '' " +
-                    " and ifnull(ID_USU_ESTAB,'') != '' " +*/
-                    " ORDER BY ID_REGISTRO", null);
+            " where ENVIADO = 0 " +
+                  /*" and ifnull(NOMBRES,'') != '' " +
+                  " and ifnull(APELLIDO,'') != '' " +
+                  " and ifnull(DNI,'') != '' " +
+                  " and ifnull(ID_USU_ESTAB,'') != '' " +*/
+            " ORDER BY ID_REGISTRO", null);
 
     String ultimoId = "";
     String CSV = "";
-    DateFormat formatterServer = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+    /*DateFormat formatterServer = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
     formatterServer.setTimeZone(TimeZone.getTimeZone("UTC−03:00"));
-    DateFormat formatterClient = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());;
+    DateFormat formatterClient = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());;*/
+    //formatterClient.setTimeZone(TimeZone.getTimeZone("UTC−03:00"));
+
+    DateFormat formatterServer = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+    formatterServer.setTimeZone(TimeZone.getTimeZone("UTC"));
+
 
     while(fila.moveToNext()) {
       ultimoId = fila.getString(0);
@@ -379,7 +557,7 @@ public class Persistencia extends Application {
       } catch (ParseException e) {
         e.printStackTrace();
       }
-      CSV += limpiarString(formatterClient.format(date)) + ";"; //  fila.getString(1)
+      CSV += limpiarString( corregirFecha(date,"yyyy-MM-dd HH:mm:ss")) + ";"; //  fila.getString(1)
       CSV += limpiarString(fila.getString(2)) + ";";
       CSV += limpiarString(fila.getString(3)) + ";";
       CSV += limpiarString(fila.getString(4)) + ";";
@@ -393,6 +571,7 @@ public class Persistencia extends Application {
     }
 
     if(fila.getCount()>0) {
+      fila.close();
       //Elimina el ultimo numeral #.
       CSV = CSV.substring(0, CSV.length() - 1);
 
@@ -409,10 +588,10 @@ public class Persistencia extends Application {
           SQLiteStatement consulta = db.compileStatement(
                   " UPDATE QRs set ENVIADO = 1 " +
                           " where ENVIADO = 0 " +
-                          /*" and ifnull(NOMBRES,'') != '' " +
-                          " and ifnull(APELLIDO,'') != '' " +
-                          " and ifnull(DNI,'') != '' " +
-                          " and ifnull(ID_USU_ESTAB,'') != '' " +*/
+                        /*" and ifnull(NOMBRES,'') != '' " +
+                        " and ifnull(APELLIDO,'') != '' " +
+                        " and ifnull(DNI,'') != '' " +
+                        " and ifnull(ID_USU_ESTAB,'') != '' " +*/
                           " and ID_REGISTRO <= ? "
           );
           consulta.bindString(1, ultimoId);
@@ -423,6 +602,7 @@ public class Persistencia extends Application {
                   "UPDATE ESTAB_USUARIO set ULTIMA_SINCRONIZACION = CURRENT_TIMESTAMP"
           );
           consulta.executeUpdateDelete();
+          consulta.close();
 
         }
       } catch (UnsupportedEncodingException e) {
@@ -443,7 +623,7 @@ public class Persistencia extends Application {
     db.execSQL(
             "CREATE TABLE IF NOT EXISTS QRs(" +
                     "id_registro INTEGER PRIMARY KEY AUTOINCREMENT," +
-                    "FECHA TIMESTAMP DEFAULT CURRENT_TIMESTAMP," +
+                    "FECHA TIMESTAMP DEFAULT CURRENT_TIMESTAMP UNIQUE," +
                     "DNI VARCHAR," +
                     "APELLIDO VARCHAR," +
                     "NOMBRES VARCHAR," +
@@ -712,17 +892,21 @@ public class Persistencia extends Application {
 
   public String getUltimoTelefono(String dni) {
     Cursor cursor = db.rawQuery("Select TELEFONO FROM QRs WHERE DNI = '"+dni+"' AND LENGTH(TELEFONO)>5 ORDER BY ID_REGISTRO DESC ",null);
-    if (cursor.moveToNext())
-      return cursor.getString(0);
-      else return "";
+    if (cursor.moveToNext()) {
+      String telefono = cursor.getString(0);
+      cursor.close();
+      return telefono;
+    }else return "";
 
   }
 
   public String getUltimoApellido(String dni) {
     Cursor cursor = db.rawQuery("Select APELLIDO FROM QRs WHERE DNI = '"+dni+"' AND LENGTH(APELLIDO)>3 ORDER BY ID_REGISTRO DESC ",null);
-    if (cursor.moveToNext())
-      return cursor.getString(0);
-    else return "";
+    if (cursor.moveToNext()) {
+      String apellido = cursor.getString(0);
+      cursor.close();
+      return apellido;
+    }else return "";
   }
 
   public String getUltimoNombres(String dni) {
@@ -761,8 +945,10 @@ public class Persistencia extends Application {
       establecimiento.Domicilio = cursor.getString(11);
       establecimiento.RegistraSalidas = cursor.getInt(12)==1?true:false;
       establecimiento.Permanencia = cursor.getInt(13);
+      establecimiento.Enviado = cursor.getInt(14) == 1 ? true : false;
       establecimiento.TipoMovimientoActual = cursor.getString(15);
 
+      cursor.close();
       return establecimiento;
 
     }
@@ -780,9 +966,14 @@ public class Persistencia extends Application {
       param.put("ID_USU_ESTAB", idUsuEstab.toString());
       param.put("N_VERSION", versionActual);
       param.put("OS", "ANDROID");
+      try {
+        Integer sdk = android.os.Build.VERSION.SDK_INT;
+        if(sdk!= null)
+          param.put("SDK", sdk.toString());
+      }catch (Exception e){}
 
-      Map<String,Object> retorno =
-              null;
+
+      PostResponse retorno = new PostResponse();
       try {
         retorno = Post(UrlServidor+
                         new String(Base64.decode("L0dQU0xfZ2V0VmVyc2lvbi8="
@@ -792,9 +983,10 @@ public class Persistencia extends Application {
         e.printStackTrace();
       }
 
-      if(retorno != null && retorno.get("MSG") != null)
+      if(retorno != null && retorno.Completado && retorno.RetornoKeyValue.size() > 0
+              && retorno.RetornoKeyValue.get("MSG") != null)
       {
-        if(retorno.get("MSG").toString().equals("S/N"))
+        if(retorno.RetornoKeyValue.get("MSG").toString().equals("S/N"))
           db.execSQL( "DELETE FROM VERSION");
         else
         {
@@ -805,8 +997,8 @@ public class Persistencia extends Application {
           );
 
           consulta.bindString(1, versionActual);
-          consulta.bindString(2, retorno.get("MSG").toString());
-          consulta.bindString(3, retorno.get("ACTUALIZA").toString());
+          consulta.bindString(2, retorno.RetornoKeyValue.get("MSG").toString());
+          consulta.bindString(3, retorno.RetornoKeyValue.get("ACTUALIZA").toString());
 
           consulta.executeInsert();
         }
@@ -823,6 +1015,8 @@ public class Persistencia extends Application {
           salida.put("MSG",cursor.getString(1));
           salida.put("ACTUALIZA",cursor.getString(2));
           Log.e("MSG",salida.get("MSG").toString());
+
+          cursor.close();
           return salida;
         }else {
           db.execSQL( "DELETE FROM VERSION");
@@ -857,7 +1051,7 @@ public class Persistencia extends Application {
     param.put("PERMANENCIA", permanencia);
 
 
-    Map<String,Object> retorno = null;
+    PostResponse retorno = new PostResponse();
     try {
       retorno = Post(UrlServidor+
                       new String(Base64.decode("L0dQU0xfdXBkYXRlVXN1RXN0YWIv"
@@ -866,35 +1060,35 @@ public class Persistencia extends Application {
     } catch (UnsupportedEncodingException e) {
       e.printStackTrace();
     }
-    String retornoString = retorno.get("RETORNO").toString();
 
-    if(retornoString.equals("OK"))
-    {
-      SQLiteStatement consulta = db.compileStatement(
-              " UPDATE ESTAB_USUARIO " +
-                      "SET NOMBRE = ?," +
-                      "    LOCALIDAD = ?, " +
-                      "    RESPONSABLE = ? ," +
-                      "    TELEFONO = ? , " +
-                      "    TELEFONO_USU = ? , " +
-                      "    DOMICILIO = ? ," +
-                      "    REGISTRA_SALIDA = ?, " +
-                      "    CUIT_DNI = ?, " +
-                      "    TIEMPO_PERMANENCIA = ?"
-      );
-      consulta.bindString(1, nombreEstablecimiento);
-      consulta.bindString(2, localidad);
-      consulta.bindString(3, nombreResponsable);
-      consulta.bindString(4, telefonoEstab);
-      consulta.bindString(5, telefono);
-      consulta.bindString(6, domicilio);
-      consulta.bindString(7, registraSalidas?"1":"0");
-      consulta.bindString(8, cuitDniResponsable);
-      consulta.bindString(9, permanencia);
+    if(retorno.Completado && retorno.Codigo == 200 && retorno.RetornoKeyValue.get("RETORNO") != null){
+      if(retorno.RetornoKeyValue.get("RETORNO").toString().equals("OK"))
+      {
+        SQLiteStatement consulta = db.compileStatement(
+                " UPDATE ESTAB_USUARIO " +
+                        "SET NOMBRE = ?," +
+                        "    LOCALIDAD = ?, " +
+                        "    RESPONSABLE = ? ," +
+                        "    TELEFONO = ? , " +
+                        "    TELEFONO_USU = ? , " +
+                        "    DOMICILIO = ? ," +
+                        "    REGISTRA_SALIDA = ?, " +
+                        "    CUIT_DNI = ?, " +
+                        "    TIEMPO_PERMANENCIA = ?"
+        );
+        consulta.bindString(1, nombreEstablecimiento);
+        consulta.bindString(2, localidad);
+        consulta.bindString(3, nombreResponsable);
+        consulta.bindString(4, telefonoEstab);
+        consulta.bindString(5, telefono);
+        consulta.bindString(6, domicilio);
+        consulta.bindString(7, registraSalidas?"1":"0");
+        consulta.bindString(8, cuitDniResponsable);
+        consulta.bindString(9, permanencia);
 
-      consulta.executeUpdateDelete();
+        consulta.executeUpdateDelete();
+      }
     }
-
   }
 
   public void ActualizarDatosLocalEstablecimiento(){
@@ -908,12 +1102,12 @@ public class Persistencia extends Application {
         param.put("P_NOMBRE", estab.NombreEstablecimiento);
         param.put("P_TELEFONO_USU", estab.Telefono);
 
-        Map<String,Object> retorno =  Post(UrlServidor+
+        PostResponse retorno =  Post(UrlServidor+
                         new String(Base64.decode("L0dQU0xfZ2V0RXN0YWJsZWNpbWllbnRvLw=="
                                 ,Base64.DEFAULT),"UTF-8")
                 ,param); //"/GPSL_getEstablecimiento/"
 
-        if (retorno != null && retorno.size() >0)
+        if (retorno.Completado && retorno.Codigo == 200 && retorno.RetornoKeyValue.size() >0)
         {
           SQLiteStatement consulta = db.compileStatement(
                   " UPDATE ESTAB_USUARIO " +
@@ -926,14 +1120,14 @@ public class Persistencia extends Application {
                           "    CUIT_DNI = ?, " +
                           "    TIEMPO_PERMANENCIA = ?"
           );
-          consulta.bindString(1, retorno.get("NOMBRE").toString());
-          consulta.bindString(2, retorno.get("LOCALIDAD")!= null? retorno.get("LOCALIDAD").toString():"");
-          consulta.bindString(3, retorno.get("RESPONSABLE")!= null? retorno.get("RESPONSABLE").toString():"");
-          consulta.bindString(4, retorno.get("TELEFONO")!= null? retorno.get("TELEFONO").toString():"");
-          consulta.bindString(5, retorno.get("DOMICILIO")!= null? retorno.get("DOMICILIO").toString():"");
+          consulta.bindString(1, retorno.RetornoKeyValue.get("NOMBRE").toString());
+          consulta.bindString(2, retorno.RetornoKeyValue.get("LOCALIDAD")!= null? retorno.RetornoKeyValue.get("LOCALIDAD").toString():"");
+          consulta.bindString(3, retorno.RetornoKeyValue.get("RESPONSABLE")!= null? retorno.RetornoKeyValue.get("RESPONSABLE").toString():"");
+          consulta.bindString(4, retorno.RetornoKeyValue.get("TELEFONO")!= null? retorno.RetornoKeyValue.get("TELEFONO").toString():"");
+          consulta.bindString(5, retorno.RetornoKeyValue.get("DOMICILIO")!= null? retorno.RetornoKeyValue.get("DOMICILIO").toString():"");
           consulta.bindString(6, "1");//retorno.get("REGISTRA_SALIDA").toString().equals("SI")?"1":"0");
-          consulta.bindString(7, retorno.get("CUIT_DNI")!= null? retorno.get("CUIT_DNI").toString():"");
-          consulta.bindString(8, retorno.get("TIEMPO_PERMANENCIA")!= null? retorno.get("TIEMPO_PERMANENCIA").toString():"");
+          consulta.bindString(7, retorno.RetornoKeyValue.get("CUIT_DNI")!= null? retorno.RetornoKeyValue.get("CUIT_DNI").toString():"");
+          consulta.bindString(8, retorno.RetornoKeyValue.get("TIEMPO_PERMANENCIA")!= null? retorno.RetornoKeyValue.get("TIEMPO_PERMANENCIA").toString():"");
 
           consulta.executeUpdateDelete();
         }
@@ -965,11 +1159,12 @@ public class Persistencia extends Application {
 
       if(cursor.moveToNext()){
         DateFormat formatterServer = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
-        formatterServer.setTimeZone(TimeZone.getTimeZone("UTC−03:00"));
+        formatterServer.setTimeZone(TimeZone.getTimeZone("UTC"));
         Date pFecha = formatterServer.parse(cursor.getString(0));
         long diffInMillies = Math.abs(new Date().getTime() - pFecha.getTime());
         Long diff = TimeUnit.DAYS.convert(diffInMillies, TimeUnit.MILLISECONDS);
 
+        cursor.close();
         return diff != null ? diff.intValue() : 0;
       }
     } catch (Exception e) {
@@ -1045,7 +1240,45 @@ public class Persistencia extends Application {
   }
 
 
+  public void setUsuarioIfNull(String usuario) {
+    Cursor cursor = db.rawQuery("Select enviado from ESTAB_USUARIO",null);
+    Boolean enviado = true;
+    if(cursor.moveToNext()){
+      enviado = cursor.getInt(0) == 0 ? false : true;
+      cursor.close();
+    }
 
+    if(!enviado){
+      Integer idUsuEstab = getIdUsuEstabDBLocal();
+      if(idUsuEstab!= null){
+        HashMap<String, String> param = new HashMap();
+        param.put("P_ID_USU_ESTAB", idUsuEstab.toString());
+        param.put("P_USUARIO", usuario);
+
+        try {
+          //Realiza el post
+          Post(UrlServidor +
+                          new String(Base64.decode("L0dQU0xfdXBkYXRlVXN1YXJpby8="
+                                  , Base64.DEFAULT), "UTF-8")
+                  , param);// /GPSL_updateUsuario/
+
+          //Actualiza en base que ya envió el usuario.
+          SQLiteStatement consulta = db.compileStatement(
+                  " UPDATE ESTAB_USUARIO set enviado = 1"
+          );
+          consulta.executeUpdateDelete();
+
+        }catch (Exception e){}
+      }
+
+    }
+
+  }
+
+  @Override
+  public void onLocationChanged(@NonNull Location location) {
+
+  }
 }
 
 

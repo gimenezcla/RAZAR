@@ -1,5 +1,6 @@
 package com.example.trazabilidadg;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -25,6 +26,7 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Looper;
 import android.provider.Settings;
 import android.util.Base64;
 import android.util.Log;
@@ -127,21 +129,20 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
     private void ActualizarUI() {
         String titulo = "Registro de ENTRADAS";
-        ((TextView)findViewById(R.id.titulo)).setTextColor(Color.rgb(7, 32, 173 ));
+        ((TextView) findViewById(R.id.titulo)).setTextColor(Color.rgb(7, 32, 173));
         Establecimiento establecimiento = persistencia.getEstablecimientoLocal();
 
-        if(establecimiento != null )
-            if(establecimiento.TipoMovimientoActual != null && establecimiento.TipoMovimientoActual.equals("SALIDA")){
+        if (establecimiento != null)
+            if (establecimiento.TipoMovimientoActual != null && establecimiento.TipoMovimientoActual.equals("SALIDA")) {
                 titulo = "Registro de SALIDAS";
                 findViewById(R.id.txtTelefono).setVisibility(View.GONE);
-                ((TextView)findViewById(R.id.titulo)).setTextColor(Color.rgb(15, 127, 31));
-            }else
-            {
+                ((TextView) findViewById(R.id.titulo)).setTextColor(Color.rgb(15, 127, 31));
+            } else {
                 findViewById(R.id.txtTelefono).setVisibility(View.VISIBLE);
-                ((TextView)findViewById(R.id.titulo)).setTextColor(Color.rgb(7, 32, 173 ));
+                ((TextView) findViewById(R.id.titulo)).setTextColor(Color.rgb(7, 32, 173));
             }
 
-        ((TextView)findViewById(R.id.titulo)).setText(titulo);
+        ((TextView) findViewById(R.id.titulo)).setText(titulo);
     }
 
     @Override
@@ -150,105 +151,106 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         setContentView(R.layout.activity_main);
         //registerReceiver(new NetworkReceiver(), new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
 
-            txtDNI = findViewById(R.id.txtDNI);
-            txtApellido = findViewById(R.id.txtApellidos);
-            txtNombres = findViewById(R.id.txtNombres);
-            txtTelefono = findViewById(R.id.txtTelefono);
-            txtDescripcion = findViewById(R.id.txtDescripcion);
-            btnLeerCodigo = findViewById(R.id.btnLeerCodigo);
-            btnManual = findViewById(R.id.btnManual);
-            btnGuardar = findViewById(R.id.btnGuardar);
-            btnVer = findViewById(R.id.btnVer);
-            lblUsuario = findViewById(R.id.lblUsuario);
+        USUARIO = getIntent().getStringExtra("USUARIO");
+        txtDNI = findViewById(R.id.txtDNI);
+        txtApellido = findViewById(R.id.txtApellidos);
+        txtNombres = findViewById(R.id.txtNombres);
+        txtTelefono = findViewById(R.id.txtTelefono);
+        txtDescripcion = findViewById(R.id.txtDescripcion);
+        btnLeerCodigo = findViewById(R.id.btnLeerCodigo);
+        btnManual = findViewById(R.id.btnManual);
+        btnGuardar = findViewById(R.id.btnGuardar);
+        btnVer = findViewById(R.id.btnVer);
+        lblUsuario = findViewById(R.id.lblUsuario);
 
-            showSettingAlert();
+        showSettingAlert();
 
-            persistencia = ((Persistencia)getApplication());
+        persistencia = ((Persistencia) getApplication());
 
-            //Inicializa como escaneo.
-            txtDNI.setEnabled(false);
-            txtApellido.setEnabled(false);
-            txtNombres.setEnabled(false);
+        //Inicializa como escaneo.
+        txtDNI.setEnabled(false);
+        txtApellido.setEnabled(false);
+        txtNombres.setEnabled(false);
 
-            btnLeerCodigo.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    VaciarCampos();
-                    escanear();
-                    setUltimaSincronizacion();
+        btnLeerCodigo.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                VaciarCampos();
+                escanear();
+                setUltimaSincronizacion();
 
-                    txtDNI.setEnabled(false);
-                    txtApellido.setEnabled(false);
-                    txtNombres.setEnabled(false);
-                    showSettingAlert();
-                    getLocationShot();
-                }
-            });
-
-            btnManual.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    // vaciamos los  campos de texto
-                    VaciarCampos();
-                    setUltimaSincronizacion();
-
-                    txtDNI.setEnabled(true);
-                    txtApellido.setEnabled(true);
-                    txtNombres.setEnabled(true);
-                    txtDNI.setFocusableInTouchMode(true);
-                    txtDNI.requestFocus();
-                    InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-                    imm.showSoftInput(txtDNI, InputMethodManager.SHOW_IMPLICIT);
-                    showSettingAlert();
-                    getLocationShot();
-                }
-            });
-
-            btnGuardar.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    setUltimaSincronizacion();
-                    guardarEnBaseDeDatos();
-                    getLocationShot();
-                }
-            });
-
-            btnVer.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    setUltimaSincronizacion();
-                    Intent intent = new Intent(MainActivity.this, ActivityHistorial.class);
-                    startActivity(intent);
-                }
-            });
-
-            txtDNI.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-                @Override
-                public void onFocusChange(View v, boolean hasFocus) {
-                    if (!hasFocus)
-                        if(!txtDNI.getText().toString().isEmpty()){
-                            llenarTelefonoHistorico(txtDNI.getText().toString().trim());
-                            if(txtApellido.getText().toString().isEmpty()){
-                                llenarApeNomHistorico(txtDNI.getText().toString().trim());
-                            }
-                        }
-                }
-            });
-
-
-            //inicia tarea background de envio masivo movimientos.
-            if(!EncendioTarea){
-                AlarmManager manager = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
-                Intent alarmIntent = new Intent(this, AlarmEnviadorReceiver.class);
-                PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, alarmIntent, 0);
-                int interval = 3 * 60 * 1000; //3 minutos
-                manager.setInexactRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), interval, pendingIntent);
-                EncendioTarea = true;
+                txtDNI.setEnabled(false);
+                txtApellido.setEnabled(false);
+                txtNombres.setEnabled(false);
+                showSettingAlert();
+                //persistencia.getLocationShot();
             }
+        });
+
+        btnManual.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // vaciamos los  campos de texto
+                VaciarCampos();
+                setUltimaSincronizacion();
+
+                txtDNI.setEnabled(true);
+                txtApellido.setEnabled(true);
+                txtNombres.setEnabled(true);
+                txtDNI.setFocusableInTouchMode(true);
+                txtDNI.requestFocus();
+                InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                imm.showSoftInput(txtDNI, InputMethodManager.SHOW_IMPLICIT);
+                showSettingAlert();
+                //persistencia.getLocationShot();
+            }
+        });
+
+        btnGuardar.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                setUltimaSincronizacion();
+                guardarEnBaseDeDatos();
+                //getLocationShot();
+            }
+        });
+
+        btnVer.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                setUltimaSincronizacion();
+                Intent intent = new Intent(MainActivity.this, ActivityHistorial.class);
+                startActivity(intent);
+            }
+        });
+
+        txtDNI.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                if (!hasFocus)
+                    if (!txtDNI.getText().toString().isEmpty()) {
+                        llenarTelefonoHistorico(txtDNI.getText().toString().trim());
+                        if (txtApellido.getText().toString().isEmpty()) {
+                            llenarApeNomHistorico(txtDNI.getText().toString().trim());
+                        }
+                    }
+            }
+        });
+
+
+        //inicia tarea background de envio masivo movimientos.
+        if (!EncendioTarea) {
+            AlarmManager manager = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
+            Intent alarmIntent = new Intent(this, AlarmEnviadorReceiver.class);
+            PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, alarmIntent, 0);
+            int interval = 5 * 60 * 1000; //5 minutos
+            manager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME, System.currentTimeMillis(), interval, pendingIntent);
+            EncendioTarea = true;
+        }
 
 
         idUsuEstab = persistencia.getIdUsuEstabDBLocal();
-        if(idUsuEstab == 0) {
+        if (idUsuEstab == 0) {
             //Inicia proceso de registración
             findViewById(R.id.progressBarMain).setVisibility(View.VISIBLE);
             Intent documento = new Intent(MainActivity.this, DocumentoActivity.class);
@@ -268,8 +270,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     }
 
     private void SolicitarEmail() {
-        if (persistencia.getEstablecimientoLocal() == null)
-        {
+        if (persistencia.getEstablecimientoLocal() == null) {
             //Abre ventana de login GMAIL.
                 /*Intent intent = AccountPicker.newChooseAccountIntent(null, null,
                         new String[]{GoogleAuthUtil.GOOGLE_ACCOUNT_TYPE}, false, null, null, null, null);*/
@@ -282,10 +283,9 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         }
     }
 
-    public void CheckDatosPendientes(){
+    public void CheckDatosPendientes() {
         Integer dias = persistencia.getCantidadDiasPendientes();
-        if(dias >= 1)
-        {
+        if (dias >= 1) {
             AlertDialog.Builder alertDialog = new AlertDialog.Builder(MainActivity.this);
             alertDialog.setCancelable(false);
             alertDialog.setTitle("Trazar - Trazabilidad Digital");
@@ -299,14 +299,14 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 }
             });
 
-            if(dias >=4){
+            if (dias >= 4) {
                 alertDialog.setMessage("Para continuar usando la App, por favor conecte a Internet su dispositivo para" +
                         " subir la información al Sistema Central de Trazabilidad Digital de Salud." +
                         " Verifique tambien que la fecha y hora de su dispositivo sean correctas.");
                 alertDialog.setPositiveButton("OK", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                            MainActivity.this.finish();
+                        MainActivity.this.finish();
                     }
                 });
             }
@@ -318,7 +318,8 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     private void CheckVersion() {
         new AsyncTask<String, Void, String>() {
             AlertDialog.Builder alertDialog;
-            Map<String,Object> version;
+            Map<String, Object> version;
+
             @Override
             protected String doInBackground(String... strings) {
                 version = persistencia.verifyVersion();
@@ -334,7 +335,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             protected void onPostExecute(String result) {
                 super.onPostExecute(result);
 
-                if(version != null){
+                if (version != null) {
                     AlertDialog.Builder alertDialog = new AlertDialog.Builder(MainActivity.this);
                     alertDialog.setCancelable(false);
                     alertDialog.setTitle("Trazar - Trazabilidad Digital");
@@ -342,10 +343,9 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                     alertDialog.setPositiveButton("OK", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-                            if(version.get("ACTUALIZA").toString().contains("SI"))
+                            if (version.get("ACTUALIZA").toString().contains("SI"))
                                 MainActivity.this.finish();
-                            else
-                            {
+                            else {
                                 dialog.cancel();
                                 //finish();
                             }
@@ -366,17 +366,12 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             }
 
 
-
-
-
-
         }.execute();
     }
 
 
-    private boolean getGPSStatus()
-    {
-        LocationManager manager = (LocationManager)  this.getSystemService(Context.LOCATION_SERVICE);
+    private boolean getGPSStatus() {
+        LocationManager manager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
         String allowedLocationProviders =
                 Settings.System.getString(getContentResolver(),
                         Settings.System.LOCATION_PROVIDERS_ALLOWED);
@@ -387,11 +382,11 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
         return allowedLocationProviders.contains(manager.GPS_PROVIDER);
     }
-    public void showSettingAlert()
-    {
 
-        LocationManager manager = (LocationManager)  this.getSystemService(Context.LOCATION_SERVICE);
-        if (!getGPSStatus() || !manager.isProviderEnabled( LocationManager.GPS_PROVIDER ) ){
+    public void showSettingAlert() {
+
+        LocationManager manager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+        if (!getGPSStatus() || !manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
             AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
             alertDialog.setCancelable(false);
             alertDialog.setTitle("Para usar esta app debe encender el GPS");
@@ -413,21 +408,23 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             alertDialog.show();
         }
     }
+
     private void llenarTelefonoHistorico(String dni) {
-        dni = dni.replaceAll("[^0-9]+","");
-        if (dni.length()>5)
+        dni = dni.replaceAll("[^0-9]+", "");
+        if (dni.length() > 5)
             txtTelefono.setText(persistencia.getUltimoTelefono(dni));
     }
+
     private void llenarApeNomHistorico(String dni) {
-        dni = dni.replaceAll("[^0-9]+","");
-        if (dni.length()>5) {
+        dni = dni.replaceAll("[^0-9]+", "");
+        if (dni.length() > 5) {
             txtApellido.setText(persistencia.getUltimoApellido(dni));
             txtNombres.setText(persistencia.getUltimoNombres(dni));
         }
     }
 
     @Override
-    public void onResume(){
+    public void onResume() {
         super.onResume();
         // put your code here...
         //getLocation2();
@@ -447,7 +444,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     private void setUltimaSincronizacion() {
         String fecha = persistencia.getUltimaSincronizacion();
 
-        if(!fecha.isEmpty()) {
+        if (!fecha.isEmpty()) {
             TextView ultSinc = findViewById(R.id.ultSincronizacion);
             ultSinc.setText("Última Sincronización con Sistema Central de Trazabilidad Digital de Salud: " + fecha);
         }
@@ -526,13 +523,64 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             return;
         }
 
+        btnGuardar.setEnabled(false);
+        findViewById(R.id.progressBarMain).setVisibility(View.VISIBLE);
+
 
         final Establecimiento establecimientoLocal = persistencia.getEstablecimientoLocal();
         idUsuEstab = establecimientoLocal.IdUsuEstab;
         if(idUsuEstab > 0)
         {
-            findViewById(R.id.progressBarMain).setVisibility(View.VISIBLE);
-            SingleShotLocationProvider.requestSingleUpdate(MainActivity.this,
+
+            //getLocationShot();
+
+
+            Location location = persistencia.getLocation();
+            double lat = 0;
+            double lon = 0;
+            if(location != null){
+                lat = location.getLatitude();
+                lon = location.getLongitude();
+            }
+
+
+            /*if(location != null && location.getLatitude() != 0)
+            {*/
+                persistencia.GuardarVisita( _dni,
+                        _ape,
+                        _nom,
+                        _gen,
+                        _tel,
+                        String.valueOf(lat),//location.latitude),
+                        String.valueOf(lon),//location.longitude),
+                        txtDescripcion.getText().toString(),
+                        establecimientoLocal.IdUsuEstab,
+                        establecimientoLocal.TipoMovimientoActual);
+
+                if(establecimientoLocal.TipoMovimientoActual.equals("SALIDA"))
+                    CustomToast.showSuccess(MainActivity.this,
+                            "SALIDA registrada con éxito", Toast.LENGTH_SHORT);
+                else
+                    CustomToast.showSuccess(MainActivity.this,
+                            "ENTRADA registrada con éxito", Toast.LENGTH_SHORT);
+
+                if(_gen.isEmpty())
+                {
+                    txtDNI.setFocusableInTouchMode(true);
+                    txtDNI.requestFocus();
+                }
+                VaciarCampos();
+            /*}else
+            {
+                CustomToast.showError(MainActivity.this,
+                        "Ocurrio un error con el GPS de su dispositivo, por favor vuelva a intentar.", Toast.LENGTH_LONG);
+            }*/
+
+
+
+
+
+            /*SingleShotLocationProvider.requestSingleUpdate(MainActivity.this,
                     new SingleShotLocationProvider.LocationCallback() {
                         @Override
                         public void onNewLocationAvailable(SingleShotLocationProvider.GPSCoordinates location) {
@@ -571,13 +619,15 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                         }
                     }
 
-             );
+             );*/
 
-            findViewById(R.id.progressBarMain).setVisibility(View.GONE);
+            //findViewById(R.id.progressBarMain).setVisibility(View.GONE);
         }else
             CustomToast.showError(MainActivity.this, "Ocurrio un error al guardar los datos, por favor cierre y vuelva a intentar.", Toast.LENGTH_LONG);
 
         CheckDatosPendientes();
+        btnGuardar.setEnabled(true);
+        findViewById(R.id.progressBarMain).setVisibility(View.GONE);
     }
 
     public void escanear() {
@@ -597,7 +647,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         CustomToast.showInfo(this,"Para activar el Flash presione la tecla Volumen Arriba.", Toast.LENGTH_LONG);
     }
 
-    public void getLocationShot() {
+    /*public void getLocationShot() {
         SingleShotLocationProvider.requestSingleUpdate(this,
                 new SingleShotLocationProvider.LocationCallback() {
                     @Override public void onNewLocationAvailable(SingleShotLocationProvider.GPSCoordinates location) {
@@ -606,7 +656,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                     }
                 });
 
-    }
+    }*/
 
     protected void getLocation() {
         locationManager = (LocationManager)  this.getSystemService(Context.LOCATION_SERVICE);
@@ -678,17 +728,8 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 if (permission.equals(ACCESS_COARSE_LOCATION) || permission.equals(ACCESS_FINE_LOCATION) ) {
                     if (grantResult != PackageManager.PERMISSION_GRANTED)
                         finish();
-                    /*    {
-
-                        idUsuEstab = Persistencia.getIdUsuEstabDBLocal();
-                        if(idUsuEstab == 0) {
-                            //Inicia proceso de registración
-                            findViewById(R.id.progressBarMain).setVisibility(View.VISIBLE);
-                            Intent documento = new Intent(MainActivity.this, DocumentoActivity.class);
-                            startActivityForResult(documento, 0x0000c0dd);
-                        }
-                    }else
-                        finish();*/
+                    else
+                        persistencia.BuscarLocation();
                 }
 
             }
@@ -704,7 +745,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         if(requestCode == 0x0000c0dd) {
             if( resultCode == RESULT_OK){
                 idUsuEstab = persistencia.getIdUsuEstabDBLocal();
-                getLocationShot();
                 supportInvalidateOptionsMenu();
                 findViewById(R.id.progressBarMain).setVisibility(View.GONE);
             }else
@@ -766,12 +806,18 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     public static enum SubBarra{TRAMITE, APELLIDO, NOMBRES, GENERO, DNI, EJEMPLAR, FECHA_NACIMIENTO, FECHA_EMISION};
     enum SubBarra2{VACIO, DNI,EJEMPLAR, VERSION, APELLIDO, NOMBRES, NACIONALIDAD, FECHA_NACIMIENTO, GENERO, FECHA_EMISION, TRAMITE};
 
-    public static String dividirBarra(String barra, SubBarra busqueda){
+    public String dividirBarra(String barra, SubBarra busqueda){
         String[] tokens = barra.split("@");
-        if (tokens.length<10)
+        if (tokens.length<10) {
+            if (busqueda.ordinal() > tokens.length - 1)
+                CustomToast.showError(MainActivity.this, "No se pudo leer el código, intente nuevamente.", Toast.LENGTH_LONG);
+
             return tokens[busqueda.ordinal()];
-        else {
+        } else {
             SubBarra2 busqueda2 = SubBarra2.valueOf(busqueda.name());
+            if (busqueda2.ordinal() > tokens.length - 1)
+                CustomToast.showError(MainActivity.this, "No se pudo leer el código, intente nuevamente.", Toast.LENGTH_LONG);
+
             return tokens[busqueda2.ordinal()];
         }
 

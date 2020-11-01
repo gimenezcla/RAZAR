@@ -126,7 +126,8 @@ public class EstablecimientoEdit extends AppCompatActivity {
             edNombreResponsable.setVisibility(View.VISIBLE);
             edNombreResponsable.setText(establecimiento.NombreResponsable);
 
-            edPermanencia.setText(establecimiento.Permanencia.toString());
+            if(establecimiento.Permanencia!= null)
+                edPermanencia.setText(establecimiento.Permanencia.toString());
 
             edTelefonoEstab.setVisibility(View.VISIBLE);
             edTelefonoEstab.setText(establecimiento.TelefonoEstab);
