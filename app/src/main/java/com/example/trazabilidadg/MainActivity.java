@@ -27,6 +27,7 @@ import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Looper;
+import android.os.SystemClock;
 import android.provider.Settings;
 import android.util.Base64;
 import android.util.Log;
@@ -135,7 +136,10 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         if (establecimiento != null)
             if (establecimiento.TipoMovimientoActual != null && establecimiento.TipoMovimientoActual.equals("SALIDA")) {
                 titulo = "Registro de SALIDAS";
-                findViewById(R.id.txtTelefono).setVisibility(View.GONE);
+
+                if(establecimiento.Salidas_telefono.equals("NO"))
+                    findViewById(R.id.txtTelefono).setVisibility(View.GONE);
+
                 ((TextView) findViewById(R.id.titulo)).setTextColor(Color.rgb(15, 127, 31));
             } else {
                 findViewById(R.id.txtTelefono).setVisibility(View.VISIBLE);
@@ -244,7 +248,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             Intent alarmIntent = new Intent(this, AlarmEnviadorReceiver.class);
             PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, alarmIntent, 0);
             int interval = 5 * 60 * 1000; //5 minutos
-            manager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME, System.currentTimeMillis(), interval, pendingIntent);
+            manager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME, SystemClock.elapsedRealtime() + interval, interval,pendingIntent);
             EncendioTarea = true;
         }
 

@@ -371,6 +371,12 @@ public class Persistencia extends Application implements LocationListener {
     } catch (SQLiteException ex) {
       Log.w("UPDATE", "Altering : ESTAB_USUARIO " + ex.getMessage());
     }
+
+    try {
+      db.execSQL("ALTER TABLE ESTAB_USUARIO ADD COLUMN SALIDA_TELEFONO VARCHAR DEFAULT 'NO'");
+    } catch (SQLiteException ex) {
+      Log.w("UPDATE", "Altering : ESTAB_USUARIO " + ex.getMessage());
+    }
   }
 
   public String getUltimaSincronizacion() {
@@ -506,7 +512,8 @@ public class Persistencia extends Application implements LocationListener {
       return respuesta;
     }
     finally {
-      myConnection.disconnect();
+      if(myConnection != null)
+        myConnection.disconnect();
     }
 
   }
@@ -514,12 +521,10 @@ public class Persistencia extends Application implements LocationListener {
   public String corregirFecha(Date fecha,  String formato) {
 
     DateFormat formatter = new SimpleDateFormat(formato);
-    formatter.setTimeZone(TimeZone.getTimeZone(TimeZone.getAvailableIDs(-3 * 60 * 60 *1000)[0]));
+    formatter.setTimeZone(TimeZone.getTimeZone(TimeZone.getAvailableIDs(-3 * 60 * 60 * 1000)[0]));
     String temp = formatter.format(fecha);
 
     return temp;
-
-
   }
 
 
@@ -947,6 +952,7 @@ public class Persistencia extends Application implements LocationListener {
       establecimiento.Permanencia = cursor.getInt(13);
       establecimiento.Enviado = cursor.getInt(14) == 1 ? true : false;
       establecimiento.TipoMovimientoActual = cursor.getString(15);
+      establecimiento.Salidas_telefono = cursor.getString(16);
 
       cursor.close();
       return establecimiento;
@@ -968,7 +974,7 @@ public class Persistencia extends Application implements LocationListener {
       param.put("OS", "ANDROID");
       try {
         Integer sdk = android.os.Build.VERSION.SDK_INT;
-        if(sdk!= null)
+        if(sdk != null)
           param.put("SDK", sdk.toString());
       }catch (Exception e){}
 
@@ -1025,10 +1031,6 @@ public class Persistencia extends Application implements LocationListener {
 
 //      return retorno;
     }
-
-
-
-
 
     return null;
   }
@@ -1118,7 +1120,8 @@ public class Persistencia extends Application implements LocationListener {
                           "    DOMICILIO = ? ," +
                           "    REGISTRA_SALIDA = ?, " +
                           "    CUIT_DNI = ?, " +
-                          "    TIEMPO_PERMANENCIA = ?"
+                          "    TIEMPO_PERMANENCIA = ?," +
+                          "    SALIDA_TELEFONO = ? "
           );
           consulta.bindString(1, retorno.RetornoKeyValue.get("NOMBRE").toString());
           consulta.bindString(2, retorno.RetornoKeyValue.get("LOCALIDAD")!= null? retorno.RetornoKeyValue.get("LOCALIDAD").toString():"");
@@ -1128,6 +1131,7 @@ public class Persistencia extends Application implements LocationListener {
           consulta.bindString(6, "1");//retorno.get("REGISTRA_SALIDA").toString().equals("SI")?"1":"0");
           consulta.bindString(7, retorno.RetornoKeyValue.get("CUIT_DNI")!= null? retorno.RetornoKeyValue.get("CUIT_DNI").toString():"");
           consulta.bindString(8, retorno.RetornoKeyValue.get("TIEMPO_PERMANENCIA")!= null? retorno.RetornoKeyValue.get("TIEMPO_PERMANENCIA").toString():"");
+          consulta.bindString(7, retorno.RetornoKeyValue.get("SALIDA_TELEFONO")!= null? retorno.RetornoKeyValue.get("SALIDA_TELEFONO").toString():"NO");
 
           consulta.executeUpdateDelete();
         }
