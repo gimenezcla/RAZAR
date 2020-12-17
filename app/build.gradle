@@ -8,8 +8,8 @@ android {
         applicationId 'com.gobsl.trazarSL'
         minSdkVersion 14
         targetSdkVersion 30
-        versionCode 40
-        versionName '1.4'
+        versionCode 41
+        versionName '1.5'
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
