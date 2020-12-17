@@ -1,21 +1,17 @@
 package com.example.trazabilidadg;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
-import android.Manifest;
 import android.accounts.AccountManager;
 import android.app.AlarmManager;
 import android.app.AlertDialog;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.content.res.ColorStateList;
 import android.database.sqlite.SQLiteDatabase;
 
 import android.content.Intent;
@@ -26,11 +22,8 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Looper;
 import android.os.SystemClock;
 import android.provider.Settings;
-import android.util.Base64;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -44,11 +37,7 @@ import com.google.android.gms.common.AccountPicker;
 import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
 
-import java.io.UnsupportedEncodingException;
-import java.security.MessageDigest;
-import java.text.SimpleDateFormat;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.Map;
 
 import static android.Manifest.permission.ACCESS_COARSE_LOCATION;
@@ -137,7 +126,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             if (establecimiento.TipoMovimientoActual != null && establecimiento.TipoMovimientoActual.equals("SALIDA")) {
                 titulo = "Registro de SALIDAS";
 
-                if(establecimiento.Salidas_telefono.equals("NO"))
+                if(establecimiento.Salida_telefono.equals("NO"))
                     findViewById(R.id.txtTelefono).setVisibility(View.GONE);
 
                 ((TextView) findViewById(R.id.titulo)).setTextColor(Color.rgb(15, 127, 31));

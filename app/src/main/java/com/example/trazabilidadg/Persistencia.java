@@ -52,7 +52,7 @@ import javax.net.ssl.HttpsURLConnection;
 
 public class Persistencia extends Application implements LocationListener {
   public SQLiteDatabase db;
-  public final String versionActual = "1.4";
+  public final String versionActual = "1.5";
 
   private String UrlServidor;
   private double latitude = 0;
@@ -952,7 +952,7 @@ public class Persistencia extends Application implements LocationListener {
       establecimiento.Permanencia = cursor.getInt(13);
       establecimiento.Enviado = cursor.getInt(14) == 1 ? true : false;
       establecimiento.TipoMovimientoActual = cursor.getString(15);
-      establecimiento.Salidas_telefono = cursor.getString(16);
+      establecimiento.Salida_telefono = cursor.getString(17) == null ?"NO" : cursor.getString(17);
 
       cursor.close();
       return establecimiento;
@@ -1131,7 +1131,7 @@ public class Persistencia extends Application implements LocationListener {
           consulta.bindString(6, "1");//retorno.get("REGISTRA_SALIDA").toString().equals("SI")?"1":"0");
           consulta.bindString(7, retorno.RetornoKeyValue.get("CUIT_DNI")!= null? retorno.RetornoKeyValue.get("CUIT_DNI").toString():"");
           consulta.bindString(8, retorno.RetornoKeyValue.get("TIEMPO_PERMANENCIA")!= null? retorno.RetornoKeyValue.get("TIEMPO_PERMANENCIA").toString():"");
-          consulta.bindString(7, retorno.RetornoKeyValue.get("SALIDA_TELEFONO")!= null? retorno.RetornoKeyValue.get("SALIDA_TELEFONO").toString():"NO");
+          consulta.bindString(9, retorno.RetornoKeyValue.get("SALIDA_TELEFONO")!= null? retorno.RetornoKeyValue.get("SALIDA_TELEFONO").toString():"NO");
 
           consulta.executeUpdateDelete();
         }

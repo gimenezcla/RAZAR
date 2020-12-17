@@ -18,5 +18,5 @@ public class Establecimiento {
     public String TipoMovimientoActual;
 
     public boolean Enviado;
-    public String Salidas_telefono;
+    public String Salida_telefono;
 }

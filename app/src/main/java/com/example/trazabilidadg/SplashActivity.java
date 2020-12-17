@@ -48,6 +48,7 @@ public class SplashActivity extends AppCompatActivity {
             @Override
             protected String doInBackground(String... strings) {
                 persistencia.EnviarVisitasMasivasPendientes();
+                persistencia.ActualizarDatosLocalEstablecimiento();
                 return null;
             }
             @Override
