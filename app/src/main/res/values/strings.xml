@@ -10,7 +10,7 @@
     <string name="cuit_establecimiento">CUIT Establecimiento o DNI del Titular</string>
     <string name="establecimiento_seleccion">Seleccione establecimiento</string>
     <string name="establecimiento_boton_crear">Crear Sucursal o Establecimiento</string>
-    <string name="establecimiento_Seleccionar">Seleccionar este establecimiento</string>
+    <string name="establecimiento_Seleccionar">Agregar mi dispositivo a este Establecimiento</string>
     <string name="este_telefono">Telefono de este dispositivo</string>
     <string name="btn_siguiente">Siguiente</string>
     <string name="comercio_responsable">Nombre del Responsable</string>

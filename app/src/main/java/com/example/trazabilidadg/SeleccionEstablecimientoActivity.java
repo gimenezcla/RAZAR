@@ -62,7 +62,7 @@ public class SeleccionEstablecimientoActivity extends AppCompatActivity {
                 }
 
                 Establecimientos = establecimientos;
-                if( establecimientos.size() >0 ){
+                if( establecimientos.size() >0 && !establecimientos.values().toArray()[0].toString().equals("0")){
 
                     spinnerEstablecimiento.setAdapter(new ArrayAdapter<String>(
                             SeleccionEstablecimientoActivity.this,android.R.layout.simple_spinner_dropdown_item,
