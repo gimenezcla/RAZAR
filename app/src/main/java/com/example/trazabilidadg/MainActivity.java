@@ -20,6 +20,7 @@ import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.SystemClock;
@@ -57,6 +58,8 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     Button btnVer;
     static SQLiteDatabase db;
     public static Persistencia persistencia;
+
+    TextView tvPolitica;
 
 
     public static double latitude;
@@ -159,6 +162,22 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         showSettingAlert();
 
         persistencia = ((Persistencia) getApplication());
+
+        tvPolitica = findViewById(R.id.tvPolitica);
+
+        tvPolitica.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String url = "http://www.sistemas-hacienda.sanluis.gov.ar/trazar/privacypolicy.php";
+                Uri uri = Uri.parse(url);
+                Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+                if (intent.resolveActivity(getPackageManager()) != null) {
+                    startActivity(intent);
+                }
+            }
+        });
+
+
 
         //Inicializa como escaneo.
         txtDNI.setEnabled(false);

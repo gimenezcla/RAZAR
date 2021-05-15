@@ -13,13 +13,19 @@ public class CustomToast {
         Toast toast = Toast.makeText(context,
                 msg,
                 length);//.show();
-        View view = toast.getView();
-        //To change the Background of Toast
-        view.setBackgroundColor(context.getResources().getColor(R.color.colorPrimary));
-        TextView text = (TextView) view.findViewById(android.R.id.message);
-        //Shadow of the Of the Text Color
-        text.setShadowLayer(0, 0, 0, Color.TRANSPARENT);
-        text.setTextColor(Color.WHITE);
+
+        try {
+            View view = toast.getView();
+            //To change the Background of Toast
+            if (view != null){
+                view.setBackgroundColor(context.getResources().getColor(R.color.colorPrimary));
+                TextView text = (TextView) view.findViewById(android.R.id.message);
+                //Shadow of the Of the Text Color
+                text.setShadowLayer(0, 0, 0, Color.TRANSPARENT);
+                text.setTextColor(Color.WHITE);
+            }
+        }catch(Exception e){ }
+
         toast.show();
         try{
         ToneGenerator toneGen1 = new ToneGenerator(AudioManager.STREAM_MUSIC, 200);
@@ -32,13 +38,18 @@ public class CustomToast {
         Toast toast = Toast.makeText(context,
                 msg,
                 length);//.show();
-        View view = toast.getView();
-        //To change the Background of Toast
-        view.setBackgroundColor(Color.rgb(74,146,0));
-        TextView text = (TextView) view.findViewById(android.R.id.message);
-        //Shadow of the Of the Text Color
-        text.setShadowLayer(0, 0, 0, Color.TRANSPARENT);
-        text.setTextColor(Color.WHITE);
+        try {
+            View view = toast.getView();
+            //To change the Background of Toast
+            if (view != null){
+                view.setBackgroundColor(Color.rgb(74,146,0));
+                TextView text = (TextView) view.findViewById(android.R.id.message);
+                //Shadow of the Of the Text Color
+                text.setShadowLayer(0, 0, 0, Color.TRANSPARENT);
+                text.setTextColor(Color.WHITE);
+            }
+        }catch(Exception e){ }
+
         toast.show();
 
         try{
@@ -53,13 +64,17 @@ public class CustomToast {
         Toast toast = Toast.makeText(context,
                 msg,
                 length);//.show();
-        View view = toast.getView();
-        //To change the Background of Toast
-        view.setBackgroundColor(Color.rgb(214,214,0));
-        TextView text = (TextView) view.findViewById(android.R.id.message);
-        //Shadow of the Of the Text Color
-        text.setShadowLayer(0, 0, 0, Color.TRANSPARENT);
-        text.setTextColor(Color.BLACK);
+        try {
+            View view = toast.getView();
+            //To change the Background of Toast
+            if (view != null){
+                view.setBackgroundColor(Color.rgb(214,214,0));
+                TextView text = (TextView) view.findViewById(android.R.id.message);
+                //Shadow of the Of the Text Color
+                text.setShadowLayer(0, 0, 0, Color.TRANSPARENT);
+                text.setTextColor(Color.BLACK);
+            }
+        }catch(Exception e){ }
         toast.show();
     }
 }

@@ -38,4 +38,5 @@
     <string name="solo_registra_entradas">Solo registra Entradas</string>
     <string name="registra_entradas_y_salidas">Registra Entradas y Salidas</string>
     <string name="TextoBienvenido">Bienvenido a Trazar San Luis, complete los datos de su establecimiento para utilizar esta App. Para poder registrarse debe tener conexión a Internet.</string>
+    <string name="politicas_de_privacidad">Políticas de Privacidad - Trazar San Luis</string>
 </resources>
